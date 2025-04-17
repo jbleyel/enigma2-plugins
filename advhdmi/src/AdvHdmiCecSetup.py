@@ -25,7 +25,7 @@ from Tools.BoundFunction import boundFunction
 import six
 
 
-class AdvHdmiCecSetup(Screen, ConfigListScreen):
+class AdvHdmiCecSetup(ConfigListScreen, Screen):
 	skin = """
 		<screen name="adv_hdmi_setup" position="center,center" size="580,480" title="Advanced HDMI-Cec Setup" >
 			<widget name="config" position="10,0" size="560,250" scrollbarMode="showOnDemand" enableWrapAround="1" />
@@ -167,7 +167,7 @@ class TimeSpanEntryList(MenuList):
 	def buildList(self, entryselect=None):
 		from Plugins.SystemPlugins.AdvHdmi.plugin import TimeSpanPresenter
 		self.list = []
-		if entryselect == None:
+		if entryselect is None:
 			try:
 				aktidx = self.l.getCurrentSelectionIndex()
 			except:
@@ -280,7 +280,7 @@ class TimeSpanListScreen(Screen):
 		self._updateList()
 
 
-class TimeSpanConfigScreen(Screen, ConfigListScreen):
+class TimeSpanConfigScreen(ConfigListScreen, Screen):
 	skin = """
 		<screen name="adv_hdmi_timespan_config" position="center,center" size="550,430" title="ignoreit" >
 			<widget name="config" position="10,0" size="530,210" scrollbarMode="showOnDemand" enableWrapAround="1" />

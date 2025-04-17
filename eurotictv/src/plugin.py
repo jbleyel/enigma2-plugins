@@ -124,7 +124,7 @@ class EuroticTVPlayer(Screen, InfoBarBase, InfoBarSeek, HelpableScreen):
 
 	def paintPosterPixmapCB(self, picInfo=None):
 		ptr = self.picload.getData()
-		if ptr != None:
+		if ptr is not None:
 			self["poster"].instance.setPixmap(ptr)
 			self["poster"].show()
 
@@ -163,14 +163,14 @@ class EuroticTVPlayer(Screen, InfoBarBase, InfoBarSeek, HelpableScreen):
 			self.playpauseService()
 
 	def togglePIG(self, fullscreen=False):
-		if fullscreen == True:
+		if fullscreen is True:
 			self.hide()
 		else:
 			self.show()
 		self["pig_mode"].setBoolean(not fullscreen)
 
 	def keyBlue(self):
-		if self["pig_mode"].getBoolean() == True:
+		if self["pig_mode"].getBoolean() is True:
 			self.togglePIG(True)
 		else:
 			self.togglePIG(fullscreen=False)
@@ -207,4 +207,4 @@ def main(session, **kwargs):
 
 
 def Plugins(**kwargs):
- 	return PluginDescriptor(name="eUroticTV", description=_("Watch eUroticTV via HTTP Live Streaming"), where=PluginDescriptor.WHERE_PLUGINMENU, icon="plugin.png", needsRestart=True, fnc=main)
+	return PluginDescriptor(name="eUroticTV", description=_("Watch eUroticTV via HTTP Live Streaming"), where=PluginDescriptor.WHERE_PLUGINMENU, icon="plugin.png", needsRestart=True, fnc=main)

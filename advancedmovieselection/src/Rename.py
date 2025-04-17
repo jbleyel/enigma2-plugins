@@ -37,7 +37,7 @@ from .Source.MovieConfig import MovieConfig
 from .Source.Globals import SkinTools, printStackTrace
 
 
-class MovieRetitle(Screen, ConfigListScreen):
+class MovieRetitle(ConfigListScreen, Screen):
     def __init__(self, session, service):
         Screen.__init__(self, session)
         self.skinName = SkinTools.appendResolution("AdvancedMovieSelection_Rename_")
@@ -193,7 +193,7 @@ class MovieRetitle(Screen, ConfigListScreen):
 
     def renameVDir(self, dir_name, name):
         try:
-            if not dir_name + "\t" + self.original_name in self.movieConfig.rename:
+            if dir_name + "\t" + self.original_name not in self.movieConfig.rename:
                 self.movieConfig.rename.append(dir_name + "\t" + name)
             elif name == "":
                 for index, item in enumerate(self.movieConfig.rename):

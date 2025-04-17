@@ -43,7 +43,14 @@ from Components.Harddisk import harddiskmanager
 
 from threading import Thread, Lock
 
-from boxbranding import getBoxType, getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+	MACHINE = BoxInfo.getItem("machinebuild")
+except:
+	from boxbranding import getImageDistro, getBoxType
+	IMAGEDISTRO = getImageDistro()
+	MACHINE = getBoxType()
 
 from six.moves import queue, range
 
@@ -163,7 +170,7 @@ def setPWM(fanid, value):
 #Configuration
 config.plugins.FanControl = ConfigSubsection()
 
-if getImageDistro() in ('openspa') and getBoxType() in ('vusolo2'):
+if IMAGEDISTRO in ('openspa') and MACHINE in ('vusolo2'):
 	config.plugins.FanControl.Fan = ConfigSelection(choices=[("disabled", _("disabled")), ("aus", _("Control disabled")), ("3pin", _("3Pin")), ("4pin", _("4Pin")), ("4pinREG", _("4Pin (PID)"))], default="3pin")
 	config.plugins.FanControl.StandbyOff = ConfigSelection(choices=[("false", _("no")), ("true", _("yes")), ("trueRec", _("yes, Except for Recording or HDD"))], default="true")
 	config.plugins.FanControl.minRPM = ConfigSlider(default=900, increment=50, limits=(0, 1500))
@@ -172,7 +179,7 @@ if getImageDistro() in ('openspa') and getBoxType() in ('vusolo2'):
 	config.plugins.FanControl.tempmax = ConfigSlider(default=50, increment=1, limits=(35, 55))
 	config.plugins.FanControl.pwm = ConfigSlider(default=30, increment=5, limits=(0, 255))
 	config.plugins.FanControl.vlt = ConfigSlider(default=30, increment=5, limits=(0, 255))
-elif getImageDistro() in ('openspa') and getBoxType() in ('vuduo2'):
+elif IMAGEDISTRO in ('openspa') and MACHINE in ('vuduo2'):
 	config.plugins.FanControl.Fan = ConfigSelection(choices=[("disabled", _("disabled")), ("aus", _("Control disabled")), ("3pin", _("3Pin")), ("4pin", _("4Pin")), ("4pinREG", _("4Pin (PID)"))], default="4pin")
 	config.plugins.FanControl.StandbyOff = ConfigSelection(choices=[("false", _("no")), ("true", _("yes")), ("trueRec", _("yes, Except for Recording or HDD"))], default="true")
 	config.plugins.FanControl.minRPM = ConfigSlider(default=750, increment=50, limits=(0, 1500))
@@ -335,7 +342,7 @@ class ControllerPI:
 # the PI controller class -end
 
 
-class FanControl2Test(Screen, ConfigListScreen):
+class FanControl2Test(ConfigListScreen, Screen):
 	skin = """
 		<screen position="center,center" size="630,300" title="Fan Control 2 - Test" >
 			<widget source="TextTest1" render="Label" position="5,20" size="620,30" zPosition="10" font="Regular;20" halign="left" valign="center" backgroundColor="#25062748" transparent="1" />
@@ -464,7 +471,7 @@ class FanControl2Test(Screen, ConfigListScreen):
 		self.close(False, self.session)
 
 
-class FanControl2Monitor(Screen, ConfigListScreen):
+class FanControl2Monitor(ConfigListScreen, Screen):
 	skin = """
 		<screen position="center,center" size="600,260" title="Fan Control 2 - Monitor">
 
@@ -554,7 +561,7 @@ class FanControl2Monitor(Screen, ConfigListScreen):
 						(stat, wert) = getstatusoutput("hdparm -y %s" % hdd[1].getDeviceName())
 
 
-class FanControl2SpezialSetup(Screen, ConfigListScreen):
+class FanControl2SpezialSetup(ConfigListScreen, Screen):
 	skin = """
 		<screen position="center,center" size="600,380" title="Fan Control 2 - Setup" >
 			<widget name="config" position="10,20" size="580,350" scrollbarMode="showOnDemand" />
@@ -747,7 +754,7 @@ class FanControl2Plugin(ConfigListScreen, Screen):
 			"info": self.monitor
 		}, -1)
 
-		if not self.selectionChanged in self["config"].onSelectionChanged:
+		if self.selectionChanged not in self["config"].onSelectionChanged:
 			self["config"].onSelectionChanged.append(self.selectionChanged)
 		self.selectionChanged()
 		self.onLayoutFinish.append(self.updateFanStatus)
@@ -837,7 +844,7 @@ class FanControl2Plugin(ConfigListScreen, Screen):
 
 
 def DeleteData():
-	if config.plugins.FanControl.DeleteData.value == "0" or config.plugins.FanControl.EnableDataLog.value == False:
+	if config.plugins.FanControl.DeleteData.value == "0" or config.plugins.FanControl.EnableDataLog.value is False:
 		return
 	try:
 		FClog("Auto-Delete Data")
@@ -922,12 +929,12 @@ def ReadHDDtemp(D):
 def GetHDDtemp(OneTime):
 	global AktHDD
 	AktHDD = []
-	if harddiskmanager.HDDCount() > 0 and config.plugins.FanControl.CheckHDDTemp.value != "never" or OneTime == True:
+	if harddiskmanager.HDDCount() > 0 and config.plugins.FanControl.CheckHDDTemp.value != "never" or OneTime is True:
 		for hdd in harddiskmanager.HDDList():
 			if hdd[1].model().startswith("ATA") and hdd[1].getDeviceName() not in FC2HDDignore:
 				sleeptime = int((time.time() - hdd[1].last_access))
 #				FClog("HDD Temp reading %s %s %ds %s" % (config.plugins.FanControl.CheckHDDTemp.value, disableHDDread, sleeptime, hdd[1].isSleeping()))
-				if config.plugins.FanControl.CheckHDDTemp.value == "true" or (config.plugins.FanControl.CheckHDDTemp.value == "auto" and not disableHDDread) or ((not hdd[1].isSleeping()) and sleeptime < 120) or OneTime == True:
+				if config.plugins.FanControl.CheckHDDTemp.value == "true" or (config.plugins.FanControl.CheckHDDTemp.value == "auto" and not disableHDDread) or ((not hdd[1].isSleeping()) and sleeptime < 120) or OneTime is True:
 					(stat, wert) = ReadHDDtemp(hdd[1].getDeviceName())
 					if stat == 0:
 						try:
@@ -1038,7 +1045,7 @@ class FanControl2(Screen):
 
 	def FC2DoShutdown(self, retval):
 		if (retval):
-			if Standby.inTryQuitMainloop == False:
+			if Standby.inTryQuitMainloop is False:
 				self.session.open(Standby.TryQuitMainloop, 1)
 
 	def stop(self):
@@ -1086,7 +1093,7 @@ class FanControl2(Screen):
 				self.HDDidle = HDDsSleeping()
 				if strftime("%M")[-1:] == "0":
 					GetHDDtemp(False)
-			if config.plugins.FanControl.EnableThread.value == True:
+			if config.plugins.FanControl.EnableThread.value is True:
 				if Briefkasten.qsize() <= 3:
 					Briefkasten.put(1)
 				else:
@@ -1190,7 +1197,7 @@ class FanControl2(Screen):
 				self.FanMax = config.plugins.FanControl.maxRPM.value - RPMdiff
 				if self.inStandby != istStandbySave or AktVLT != AktVLTtmp or AktPWM != AktPWMtmp:
 					istStandbySave = self.inStandby
-					if istStandbySave == True:
+					if istStandbySave is True:
 						Standby.inStandby.onClose.append(FC2fanReset)
 					FC2fanReset()
 					AktVLTtmp = AktVLT
@@ -1202,7 +1209,7 @@ class FanControl2(Screen):
 						FC2fanReset()
 				if (AktVLT + AktPWM) == 0:
 					FirstStart = True
-				if FirstStart == True:
+				if FirstStart is True:
 					FirstStart = False
 					AktVLTtmp = self.Vlt
 					setVoltage(id, self.Vlt)
@@ -1210,7 +1217,7 @@ class FanControl2(Screen):
 				AktRPMtmp = GetFanRPM()
 				if RPMread > 0 and RPMread < 3:
 					FClog("Reread")
-					if config.plugins.FanControl.EnableThread.value == True:
+					if config.plugins.FanControl.EnableThread.value is True:
 						if Briefkasten.qsize() <= 2:
 							time.sleep(0.4)
 							Briefkasten.put(1)
@@ -1329,10 +1336,10 @@ def autostart(reason, **kwargs):
 
 
 def selSetup(menuid, **kwargs):
-	if getImageDistro() in ('openhdf'):
+	if IMAGEDISTRO in ('openhdf'):
 		if menuid != "devices_menu":
 			return []
-	elif getImageDistro() in ('openatv'):
+	elif IMAGEDISTRO in ('openatv'):
 		if menuid != "extended":
 			return []
 	else:

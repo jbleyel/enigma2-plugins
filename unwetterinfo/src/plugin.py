@@ -218,14 +218,14 @@ class UnwetterMain(Screen):
 				self.downloadWeatherReport()
 
 	def go(self):
-	 c = self["hmenu"].getCurrent()
-	 if c is not None and self.menueintrag:
-		 x = self.menueintrag.index(c)
-		 if x != 0:  # Wetterlagebericht ist Index 0
-			 url = self.link[x]
-			 self["statuslabel"].setText("Loading Data")
-			 self.downloadPicUrl(url)
-		 self.ThumbTimer.start(1500, True)
+		c = self["hmenu"].getCurrent()
+		if c is not None and self.menueintrag:
+			x = self.menueintrag.index(c)
+			if x != 0:  # Wetterlagebericht ist Index 0
+				url = self.link[x]
+				self["statuslabel"].setText("Loading Data")
+				self.downloadPicUrl(url)
+			self.ThumbTimer.start(1500, True)
 
 	def up(self):
 		self["hmenu"].up()
@@ -328,11 +328,11 @@ class UnwetterMain(Screen):
 			endpos = output.find('</div>', startpos)
 			bereich = output[startpos:endpos]
 
-		bereich = sub('<br\s*/?>', "\n", bereich)
+		bereich = sub(r'<br\s*/?>', "\n", bereich)
 		bereich = sub('<[^>]*>', "", bereich)
 		bereich = sub('Fronten- und Isobarenkarte.*', "", bereich)
 		bereich = bereich.strip()
-		bereich = sub("\n[\s\n]+", "\n\n", bereich)
+		bereich = sub(r"\n[\s\n]+", "\n\n", bereich)
 
 		f = open(self.reportfile, "w")
 		f.write("%s" % bereich)

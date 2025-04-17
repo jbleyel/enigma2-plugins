@@ -36,7 +36,7 @@ FONT = "/usr/share/fonts/LiberationSans-Regular.ttf"
 if not path.exists(FONT):
     FONT = "/usr/share/fonts/nmsbd.ttf"
 addFont(FONT, "SRegular", 100, False)
-API_URL = "https://zdf-cdn.live.cellular.de/mediathekV2/"
+API_URL = "https://zdf-prod-futura.zdf.de/mediathekV2/"
 ColorList = [("default,#1a104485,#3D104485,#1aC0C0C0", "Trans-BrightBlue"), ("default,#050a1232,#1502050e,#05192d7c", "Trans-DarkBlue"), ("default,#05000000,#15000000,#606060", "Trans-BlackGray"), ("default,#05000000,#15000000,#ffff00", "Trans-BlackYellow"), ("default,#1a746962,#1502050e,#1a746962", "Trans-BrownBlue"), ("MiniTV,#104485,#0c366a,#C0C0C0", "BrightBlue MiniTV"), ("MiniTV,#0a1232,#02050e,#192d7c", "DarkBlue MiniTV"), ("MiniTV,#000000,#080808,#606060", "BlackGray MiniTV"), ("MiniTV,#000000,#080808,#ffff00", "BlackYellow MiniTV"), ("MiniTV,#746962,#02050e,#746962", "BrownBlue MiniTV")]
 config.plugins.ZDF.SkinColor = ConfigSelection(default="default,#050a1232,#1502050e,#05192d7c", choices=ColorList)
 
@@ -340,7 +340,7 @@ class ZDFMediathek(Screen):
         plot += " UT" if sta.get("ut", {}).get("enabled") is True else ""
         plot += " AD" if sta.get("ad", {}).get("enabled") is True else ""
         plot += " DGS" if sta.get("dgs", {}).get("enabled") is True else ""
-        plot += " " + js.get("fsk", "").upper() if not js.get("fsk", "") in "none" else ""
+        plot += " " + js.get("fsk", "").upper() if js.get("fsk", "") not in "none" else ""
         if not js.get("beschreibung", "") == js.get("textLong", "") and js.get("beschreibung") and js.get("textLong"):
             plot += "\n\n" + js.get("beschreibung") + "\n\n" + js.get("textLong")
         else:

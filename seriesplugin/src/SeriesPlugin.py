@@ -57,7 +57,7 @@ instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]')
 CompiledRegexpReplaceChars = None
-CompiledRegexpReplaceDirChars = re.compile('[^/\wäöüß\-_\. ]')
+CompiledRegexpReplaceDirChars = re.compile(r'[^/\wäöüß\-_\. ]')
 
 
 def dump(obj):
@@ -110,7 +110,7 @@ def getInstance():
 				CompiledRegexpReplaceChars = re.compile('[' + config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\") + ']')
 		except:
 			log.exception(" Config option 'Replace Chars' is no valid regular expression")
-			CompiledRegexpReplaceChars = re.compile("[:\!/\\,\(\)'\?]")
+			CompiledRegexpReplaceChars = re.compile(r"[:\!/\\,\(\)'\?]")
 
 		# Check autotimer
 		try:
@@ -131,14 +131,16 @@ def getInstance():
 
 		# Check dependencies
 		start = True
-		from imp import find_module
-		dependencies = ["difflib", "json", "re", "xml", "xmlrpclib"]
+		import importlib.util
+		dependencies = ["difflib", "json", "re", "xml", "xmlrpc"]
 		for dependency in dependencies:
 			try:
-				find_module(dependency)
+				spec = importlib.util.find_spec(dependency)
+				if spec is None:
+					log.error(f"Module {dependency} not found")
 			except ImportError:
 				start = False
-				log.error(_("Error missing dependency") + "\n" + "python-" + dependency + "\n\n" + _("Please install missing python paket manually"))
+				log.error("Error missing dependency\npython3-" + dependency + "\n\nPlease install the missing python package manually")
 		if start:
 			instance = SeriesPlugin()
 
@@ -405,10 +407,9 @@ class SeriesPlugin(Modules, ChannelsBase):
 
 		pattern = config.plugins.seriesplugin.pattern_title.value
 		pattern = pattern.replace("{org:s}", "(.+)")
-		pattern = re.sub('{season:?\d*d?}', '\d+', pattern)
-		pattern = re.sub('{episode:?\d*d?}', '\d+', pattern)
-		pattern = re.sub('{rawseason:s}', '.+', pattern)
-		pattern = re.sub('{rawseason:s}', '.+', pattern)
+		pattern = re.sub(r'{season:?\d*d?}', r'\\d+', pattern)
+		pattern = re.sub(r'{episode:?\d*d?}', r'\\d+', pattern)
+		pattern = re.sub(r'{rawseason:s}', r'.+', pattern)
 		pattern = pattern.replace("{title:s}", ".+")
 		self.compiledRegexpSeries = re.compile(pattern)
 
@@ -489,7 +490,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 				serviceref = str(service)
 			serviceref = re.sub('::.*', ':', serviceref)
 
-			if block == False:
+			if block is False:
 
 				self.thread.add(ThreadItem(identifier, callback, name, begin, end, serviceref))
 

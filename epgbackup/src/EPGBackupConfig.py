@@ -29,7 +29,7 @@ from .plugin import gUserScriptExists
 from .plugin import epgbackup
 
 
-class EPGBackupConfig(Screen, HelpableScreen, ConfigListScreen):
+class EPGBackupConfig(ConfigListScreen, Screen, HelpableScreen):
 	skin = """
 		<screen name="EPGBackupSetup" position="center,center" size="700,520" >
 			<ePixmap position="0,0" size="140,40" pixmap="skin_default/buttons/red.png" transparent="1" alphatest="on" />
@@ -234,7 +234,7 @@ class EPGBackupConfig(Screen, HelpableScreen, ConfigListScreen):
 	def _updateHelp(self):
 		cur = self["config"].getCurrent()
 		if cur:
-			if cur[2] == None:
+			if cur[2] is None:
 				self.updateVariableHelpText(cur[1])
 			else:
 				self["help"].text = cur[2]

@@ -4,11 +4,12 @@ from __future__ import print_function
 from . import _
 
 from Plugins.Plugin import PluginDescriptor
-from enigma import ePicLoad, eServiceCenter
+from enigma import ePicLoad, eServiceCenter, eServiceReference
 from Screens.Screen import Screen
 from Screens.Setup import Setup
 from Screens.HelpMenu import HelpableScreen
 from Screens.ChoiceBox import ChoiceBox
+from Screens.InfoBar import MoviePlayer
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Components.ActionMap import HelpableActionMap
 from Components.Pixmap import Pixmap
@@ -27,7 +28,7 @@ import os
 import re
 import requests
 import six
-from time import strftime
+from time import strftime, strptime
 from twisted.internet.threads import deferToThread
 from shutil import copy
 
@@ -55,10 +56,10 @@ config.plugins.imdb.showepisoderesults = ConfigYesNo(default=False)
 config.plugins.imdb.showepisodeinfo = ConfigYesNo(default=False)
 
 
-def getPage(url, params=None, headers=None, cookies=None):
+def getPage(url, params=None, data=None, headers=None, cookies=None):
 	headers = headers or {}
 	headers["user-agent"] = "Mozilla/5.0 Gecko/20100101 Firefox/100.0"
-	return deferToThread(requests.get, url, params=params, headers=headers, cookies=cookies, timeout=30.05)
+	return deferToThread(requests.post if data else requests.get, url, params=params, data=data, headers=headers, cookies=cookies, timeout=30.05)
 
 
 def savePage(response, filename):
@@ -269,6 +270,7 @@ class IMDB(Screen, HelpableScreen):
 		# 1 = movie info page
 		# 2 = extra infos page
 		# 3 = synopsis page
+		# 4 = reviews page
 		self.Page = 0
 
 		self.cookie = {
@@ -284,19 +286,19 @@ class IMDB(Screen, HelpableScreen):
 		self["actionsColor"] = HelpableActionMap(self, "ColorActions",
 		{
 			"red": (self.exit, _("Exit IMDb search")),
-			"green": (self.showMenu, _("Show list of matched movies an series")),
+			"green": (self.showMenu, _("Show list of matched movies and series")),
 			"yellow": (self.showDetails, _("Show movie and series basic details")),
 			"blue": (self.showExtras, _("Show movie and series extra details")),
 		}, -1)
 		self["actionsMovieSel"] = HelpableActionMap(self, ["MenuActions", "InfoActions"],
 		{
 			"menu": (self.contextMenuPressed, _("Menu")),
-			"info": (self.showDetails, _("Show movie and series basic details")),
 		}, -1)
-		self["actionsInfobar"] = HelpableActionMap(self, ["InfobarActions", "InfobarTeletextActions"],
+		self["actionsIMDb"] = HelpableActionMap(self, "IMDbActions",
 		{
-			"showMovies": (self.bigPoster, _("Show a bigger poster")),
-			"startTeletext": (self.showSynopsis, _("Show movie and series synopsis")),
+			"poster": (self.bigPoster, _("Show a bigger poster")),
+			"reviews": (self.showReviews, _("Show first page of user reviews")),
+			"synopsis": (self.showSynopsis, _("Show movie and series synopsis")),
 		}, -1)
 		self["actionsDir"] = HelpableActionMap(self, "DirectionActions",
 		{
@@ -325,6 +327,8 @@ class IMDB(Screen, HelpableScreen):
 		self["titellabel"].setText("")
 		self["extralabel"].setText("")
 		self.ratingstars = -1
+		self.reviews = []
+		self.spoilers = False
 
 	def pageUp(self):
 		if self.hideBigPoster():
@@ -335,7 +339,7 @@ class IMDB(Screen, HelpableScreen):
 		elif self.Page == 1:
 			self["castlabel"].pageUp()
 			self["detailslabel"].pageUp()
-		else:  # self.Page in (2, 3):
+		else:  # self.Page in (2, 3, 4):
 			self["extralabel"].pageUp()
 
 	def pageDown(self):
@@ -347,7 +351,7 @@ class IMDB(Screen, HelpableScreen):
 		elif self.Page == 1:
 			self["castlabel"].pageDown()
 			self["detailslabel"].pageDown()
-		else:  # self.Page in (2, 3):
+		else:  # self.Page in (2, 3, 4):
 			self["extralabel"].pageDown()
 
 	def showMenu(self):
@@ -383,6 +387,110 @@ class IMDB(Screen, HelpableScreen):
 			self.json = response.content
 			if six.PY3:
 				self.json = self.json.decode("utf8")
+			if self.json.startswith('{"errors'):
+				if not self.tmdTitleId:
+					print("[IMDb] error getting TMD", self.json)
+				else:
+					print("[IMDb] getting TMD via POST")
+					query = (
+						'{"query":"'
+						'query TMD_Storyline($titleId: ID!) {\\n'
+						'  title(id: $titleId) {\\n'
+						'    id\\n'
+						'    ...TMD_Storyline_PlotSection\\n'
+						'    ...TMD_Storyline_Taglines\\n'
+						'    ...TMD_Storyline_Genres\\n'
+						'    ...TMD_Storyline_Certificate\\n'
+						'    ...TMD_Storyline_ParentsGuide\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment TMD_Storyline_PlotSection on Title {\\n'
+						'  summaries: plots(first: 1, filter: {type: SUMMARY}) {\\n'
+						'    edges {\\n'
+						'      node {\\n'
+						'        ...PlotData\\n'
+						'        author\\n'
+						'      }\\n'
+						'    }\\n'
+						'  }\\n'
+						'  outlines: plots(first: 1, filter: {type: OUTLINE}) {\\n'
+						'    edges {\\n'
+						'      node {\\n'
+						'        ...PlotData\\n'
+						'      }\\n'
+						'    }\\n'
+						'  }\\n'
+						'  synopses: plots(first: 1, filter: {type: SYNOPSIS}) {\\n'
+						'    edges {\\n'
+						'      node {\\n'
+						'        ...PlotData\\n'
+						'      }\\n'
+						'    }\\n'
+						'  }\\n'
+						'  storylineKeywords: keywords(first: 5) {\\n'
+						'    edges {\\n'
+						'      node {\\n'
+						'        legacyId\\n'
+						'        text\\n'
+						'      }\\n'
+						'    }\\n'
+						'    total\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment PlotData on Plot {\\n'
+						'  plotText {\\n'
+						'    plaidHtml\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment TMD_Storyline_Taglines on Title {\\n'
+						'  taglines(first: 1) {\\n'
+						'    edges {\\n'
+						'      node {\\n'
+						'        text\\n'
+						'      }\\n'
+						'    }\\n'
+						'    total\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment TMD_Storyline_Genres on Title {\\n'
+						'  genres {\\n'
+						'    genres {\\n'
+						'      id\\n'
+						'      text\\n'
+						'    }\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment TMD_Storyline_Certificate onTitle {\\n'
+						'  certificate {\\n'
+						'    rating\\n'
+						'    ratingReason\\n'
+						'    ratingsBody {\\n'
+						'      id\\n'
+						'    }\\n'
+						'  }\\n'
+						'}\\n'
+						'\\n'
+						'fragment TMD_Storyline_ParentsGuide on Title {\\n'
+						'  parentsGuide {\\n'
+						'    guideItems(first: 0) {\\n'
+						'      total\\n'
+						'    }\\n'
+						'  }\\n'
+						'}",'
+						'"operationName":"TMD_Storyline",'
+						'"variables":{"titleId":"%s"},'
+						'"extensions":{"persistedQuery":{"version":1,'
+						'"sha256Hash":"78f137c28457417c10cf92a79976e54a65f8707bfc4fd1ad035da881ee5eaac6"}}}'
+					) % self.tmdTitleId
+					self.tmdTitleId = None
+					tmd = getPage("https://caching.graphql.imdb.com/", data=query, headers={"content-type": "application/json"}, cookies=self.cookie)
+					tmd.addBoth(self.gotTMD)
+					return
 		if self.haveHTML:
 			self.IMDBparse()
 		else:
@@ -395,13 +503,65 @@ class IMDB(Screen, HelpableScreen):
 		params = {
 			"operationName": 'TMD_Storyline',
 			"variables": '{"titleId":"%s"}' % titleId,
-			"extensions": '{"persistedQuery":{"sha256Hash":"87f41463a48af95ebba3129889d17181402622bfd30c8dc9216d99ac984f0091","version":1}}'
+			"extensions": '{"persistedQuery":{"sha256Hash":"78f137c28457417c10cf92a79976e54a65f8707bfc4fd1ad035da881ee5eaac6","version":1}}'
 		}
 		self.haveTMD = self.haveHTML = False
+		self.tmdTitleId = titleId
 		tmd = getPage("https://caching.graphql.imdb.com/", params=params, headers={"content-type": "application/json"}, cookies=self.cookie)
 		tmd.addBoth(self.gotTMD)
 		download = getPage(fetchurl, cookies=self.cookie)
 		download.addCallback(self.IMDBquery2).addErrback(self.http_failed)
+
+	def gotReviews(self, response):
+		self["statusbar"].setText(_("Parsing reviews..."))
+		self.reviewsJSON = response.content
+		if six.PY3:
+			self.reviewsJSON = self.reviewsJSON.decode("utf8")
+		try:
+			reviews = json.loads(self.reviewsJSON)['data']['title']['reviews']['edges']
+		except Exception as e:
+			self["statusbar"].setText(_("IMDb Reviews failed"))
+			print("[IMDB] reviews failed:", str(e))
+			return
+
+		def makedate(date):
+			try:
+				return strftime(config.usage.date.full.value, strptime(date, "%Y-%m-%d"))
+			except:
+				return date
+
+		for review in reviews:
+			review = review['node']
+			try:
+				helpful = review['helpfulness']['upVotes']
+				total = helpful + review['helpfulness']['downVotes']
+				if total:
+					helpful = _("%d out of %d found this helpful.") % (helpful, total)
+				else:
+					helpful = ""
+			except:
+				helpful = ""
+			self.reviews.append({
+				'rating': str(get(review, 'authorRating')),
+				'title': html2text(get(review, ('summary', 'originalText'))),
+				'author': html2text(get(review, ('author', 'nickName'))),
+				'date': makedate(get(review, 'submissionDate')),
+				'spoiler': get(review, 'spoiler') and self.spoiler_i18n,
+				'review': html2text(get(review, ('text', 'originalText', 'plaidHtml'))),
+				'helpful': helpful
+			})
+		self["statusbar"].setText(_("IMDb Reviews parsed"))
+		self.showExtras(reviews=True)
+
+	def downloadReviews(self):
+		self["statusbar"].setText(_("Downloading reviews..."))
+		params = {
+			"operationName": 'TitleReviewsRefine',
+			"variables": '{"const":"%s","first":25}' % self.titleId,
+			"extensions": '{"persistedQuery":{"sha256Hash":"89aff4cd7503e060ff1dd5aba91885d8bac0f7a21aa1e1f781848a786a5bdc19","version":1}}'
+		}
+		download = getPage("https://caching.graphql.imdb.com/", params=params, headers={"content-type": "application/json"}, cookies=self.cookie)
+		download.addCallback(self.gotReviews).addErrback(self.http_failed)
 
 	def showDetails(self):
 		self.hideBigPoster()
@@ -418,7 +578,7 @@ class IMDB(Screen, HelpableScreen):
 			self.resetLabels()
 			self.Page = 1
 
-		if self.Page in (2, 3):
+		if self.Page in (2, 3, 4):
 			self["extralabel"].hide()
 			if self.ratingstars > 0:
 				self["starsbg"].show()
@@ -427,7 +587,7 @@ class IMDB(Screen, HelpableScreen):
 
 			self.Page = 1
 
-	def showExtras(self, synopsis=False):
+	def showExtras(self, synopsis=False, reviews=False):
 		self.hideBigPoster()
 
 		if self.Page == 0 or (not synopsis and not self.extra):
@@ -440,14 +600,51 @@ class IMDB(Screen, HelpableScreen):
 			self["stars"].hide()
 			self["starsbg"].hide()
 			self["ratinglabel"].hide()
-		self["extralabel"].setText(self.synopsis if synopsis else self.extra)
-		self.Page = synopsis and 3 or 2
+		if reviews:
+			if self.Page == 4:
+				self.spoilers = not self.spoilers
+				pos = self["extralabel"].curPos
+			else:
+				pos = 0
+			reviews = []
+			for review in self.reviews:
+				reviews.append((review['rating'] and review['rating'] + "/10 | " or "") + review['date'])
+				reviews.append(review['title'] + " [" + review['author'] + "]")
+				reviews.append("")
+				if review['spoiler']:
+					reviews.append("** " + review['spoiler'] + " **")
+					reviews.append("")
+				if self.spoilers or not review['spoiler']:
+					reviews.append(review['review'])
+					reviews.append("")
+				if review['helpful']:
+					reviews.append(review['helpful'])
+					reviews.append("")
+				reviews.append("-" * 72)
+				reviews.append("")
+			self.reviewsTxt = "\n".join(reviews[:-3])
+			self["extralabel"].setText(text2label(self.reviewsTxt))
+			self["extralabel"].setPos(pos)
+			self["extralabel"].updateScrollbar()
+			self.Page = 4
+		else:
+			self["extralabel"].setText(self.synopsis if synopsis else self.extra)
+			self.Page = synopsis and 3 or 2
 
 	def showSynopsis(self):
 		self.hideBigPoster()
 
 		if self.synopsis:
-			self.showExtras(True)
+			self.showExtras(synopsis=True)
+
+	def showReviews(self):
+		self.hideBigPoster()
+
+		if self.Page != 0 and self.extrainfos["commenttitle"]:
+			if not self.reviews:
+				self.downloadReviews()
+			else:
+				self.showExtras(reviews=True)
 
 	def contextMenuPressed(self):
 		self.hideBigPoster()
@@ -471,6 +668,12 @@ class IMDB(Screen, HelpableScreen):
 				(_("Search Trailer"), self.searchYttrailer),
 			))
 
+		if isPluginInstalled("SubsSupport"):
+			list.append((_("SubsSupport search"), self.searchSubsSupport))
+
+		for video in self.videos:
+			list.append((video[0], self.playVideo, video[1], video[2]))
+
 		self.session.openWithCallback(
 			self.menuCallback,
 			ChoiceBox,
@@ -479,7 +682,13 @@ class IMDB(Screen, HelpableScreen):
 		)
 
 	def menuCallback(self, ret=None):
-		ret and ret[1]()
+		if ret:
+			ret[1]() if len(ret) == 2 else ret[1](ret[2], ret[3])
+
+	def playVideo(self, name, url):
+		ref = eServiceReference(4097, 0, url)
+		ref.setName(name)
+		self.session.open(IMDbPlayer, ref)
 
 	def saveHtmlDetails(self):
 		try:
@@ -488,6 +697,8 @@ class IMDB(Screen, HelpableScreen):
 				open(isave + ".html", 'w').write(self.html)
 				if self.json:
 					open(isave + ".json", 'w').write(self.json)
+				if self.reviewsJSON:
+					open(isave + "-reviews.json", 'w').write(self.reviewsJSON)
 				try:
 					copy("/tmp/poster.jpg", isave + ".jpg")
 				except:
@@ -537,13 +748,15 @@ class IMDB(Screen, HelpableScreen):
 			"\n"
 			"%s\n"  # extra
 			"%s"    # newlines & synopsis, if present
+			"%s"    # newlines & reviews, if present
 		) % (
 			self.eventName,
 			self["ratinglabel"].getText(),
 			self.callbackData,
 			self.castTxt,
 			self.extraTxt,
-			self.synopsisTxt and "\n".join(("", _("Synopsis"), "", self.synopsisTxt, "")) or ""
+			self.synopsisTxt and "\n".join(("", _("Synopsis"), "", self.synopsisTxt, "")) or "",
+			self.reviewsTxt and "\n".join(("", _("User reviews"), "", self.reviewsTxt, "")) or ""
 		)
 
 	def openYttrailer(self):
@@ -566,6 +779,19 @@ class IMDB(Screen, HelpableScreen):
 			return
 
 		self.session.open(YTTrailerList, self.eventName)
+
+	def searchSubsSupport(self):
+		try:
+			from Plugins.Extensions.SubsSupport.subtitles import E2SubsSeeker, SubsSearch, initSubsSettings
+		except ImportError as ie:
+			self["statusbar"].setText(_("SubsSupport import failed"))
+			return
+
+		settings = initSubsSettings().search
+		titles = [self.eventName]
+		if self.originalName != self.eventName:
+			titles.append(self.originalName)
+		self.session.open(SubsSearch, E2SubsSeeker(self.session, settings), settings, searchTitles=titles, standAlone=True)
 
 	def openVirtualKeyBoard(self):
 		self.session.openWithCallback(
@@ -594,8 +820,11 @@ class IMDB(Screen, HelpableScreen):
 		self.titleId = None
 		self.html = ""
 		self.json = self.generalinfos = None
-		self.castTxt = self.extraTxt = self.synopsisTxt = ""
+		self.castTxt = self.extraTxt = self.synopsisTxt = self.reviewsTxt = ""
 		self.extra = self.synopsis = ""
+		self.videos = []
+		self.reviews = []
+		self.spoilers = False
 		safeRemove("/tmp/poster.jpg", "/tmp/poster-big.jpg")
 		if not isinstance(self.eventName, six.string_types):
 			self["statusbar"].setText("")
@@ -779,6 +1008,7 @@ class IMDB(Screen, HelpableScreen):
 				tmd = {}
 
 			self.eventName = get(fold, ('titleText', 'text'))
+			self.originalName = get(fold, ('originalTitleText', 'text'))
 			self.titleId = get(fold, 'id')
 
 			self["key_yellow"].setText(_("Details"))
@@ -840,13 +1070,14 @@ class IMDB(Screen, HelpableScreen):
 				'sound': get(i18n, 'title_main_techspec_soundmix'),
 				'aspect': get(i18n, 'title_main_techspec_aspectratio'),
 			}
+			self.spoiler_i18n = get(i18n, 'common_label_spoiler', _("Spoiler"))
 
 			self.generalinfos = {
 				'director': ", ".join(get(name, ('name', 'nameText', 'text')) for name in get(main, ('directors', 'credits'))),
 				'creator': ", ".join(get(name, ('name', 'nameText', 'text')) for name in get(main, ('creators', 'credits'))),
 				'episodes': get(main, ('episodes', 'totalEpisodes', 'total')),
 				'seasons': len(get(main, ('episodes', 'seasons'))),
-				'writer': ", ".join(get(name, ('name', 'nameText', 'text')) + (name['attributes'] and " (" + name['attributes'][0]['text'] + ")" or "") for name in get(main, ('writers', 'credits'))),
+				'writer': ", ".join(get(name, ('name', 'nameText', 'text')) + (name.get('attributes') and " (" + name['attributes'][0]['text'] + ")" or "") for name in get(main, ('writers', 'credits'))),
 				'country': ', '.join(get(country, 'text') for country in get(main, ('countriesOfOrigin', 'countries'))),
 				'premiere': main['releaseDate'] and "%s (%s)" % (makedate(main['releaseDate']), get(main, ('releaseDate', 'country', 'text'))),
 				# there's also main['releaseYear']['year']
@@ -1105,6 +1336,29 @@ class IMDB(Screen, HelpableScreen):
 			self.synopsisTxt = html2text(get(tmd, ('synopses', 'edges', 'node', 'plotText', 'plaidHtml')))
 			self.synopsis = text2label(self.synopsisTxt)
 
+			for video in get(fold, ('primaryVideos', 'edges')):
+				video = video['node']
+				typ = get(video, ('contentType', 'displayName', 'value'))
+				desc = get(video, ('description', 'value'))
+				name = get(video, ('name', 'value'))
+				# If the name is the same as the title, use the description if
+				# it appears to be a name, otherwise just use the content type.
+				if name == self.eventName:
+					name = desc if desc and len(desc) < 70 and desc != name else typ
+				runtime = video['runtime']['value']
+				# Assume the first video is the best.
+				url = get(video, ('playbackURLs', 'url'))
+				if self.eventName.lower() in name.lower():
+					title = name
+				else:
+					title = "%s - %s" % (self.eventName, name)
+				self.videos.append(("%s (%d:%02d)" % (name, runtime // 60, runtime % 60), title, url))
+				for subt in get(video, 'timedTextTracks'):
+					self.videos.append(("   " + (get(subt, ('displayName', 'value'))
+												or get(subt, ('displayName', 'language'))
+												or get(subt, 'language')),
+										title, url + "&suburi=" + get(subt, 'url')))
+
 		self.callbackData = Detailstext
 		Detailstext = text2label(Detailstext)
 		self["detailslabel"].setText(Detailstext)
@@ -1167,6 +1421,21 @@ class IMDB(Screen, HelpableScreen):
 
 	def createSummary(self):
 		return IMDbLCDScreen
+
+
+class IMDbPlayer(MoviePlayer):
+	def __init__(self, session, service):
+		MoviePlayer.__init__(self, session, service)
+		self.skinName = "MoviePlayer"
+
+	def leavePlayer(self):
+		self.close()
+
+	def doEofInternal(self, playing):
+		self.close()
+
+	def showMovies(self):
+		pass
 
 
 class IMDbLCDScreen(Screen):

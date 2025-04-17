@@ -59,7 +59,6 @@ SUBDIRS = \
 	ofdb \
 	orfat \
 	orfteletext \
-	partnerbox \
 	permanentclock \
 	pipservicerelation \
 	podcast \
@@ -68,7 +67,6 @@ SUBDIRS = \
 	quickbutton \
 	reconstructapsc \
 	reftopiconname \
-	remotetimer \
 	rsdownloader \
 	seriesplugin \
 	setpasswd \
@@ -141,7 +139,19 @@ else
 SUBDIRS += networkbrowser epgsearch
 endif
 
-SUBDIRS += tetris ardmediathek netzkino Series2Folder srfmediathek epgexport
+if REMOTETIMER2
+SUBDIRS += remotetimer2
+else
+SUBDIRS += remotetimer
+endif
+
+if PARTNERBOX2
+SUBDIRS += partnerbox2
+else
+SUBDIRS += partnerbox
+endif
+
+SUBDIRS += tetris ardmediathek netzkino Series2Folder srfmediathek epgexport mediathekviewweb
 
 metadir = $(datadir)/meta
 meta_DATA = index-enigma2-plugins.xml

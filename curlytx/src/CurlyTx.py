@@ -25,15 +25,15 @@ import six
 class CurlyTx(Screen, HelpableScreen):
     skin = """
         <screen name="CurlyTx" position="center,center" size="560,430" title="CurlyTx" >
-	  <ePixmap position="0,0" size="140,40" pixmap="skin_default/buttons/red.png" transparent="1" alphatest="on" />
-	  <ePixmap position="140,0" size="140,40" pixmap="skin_default/buttons/green.png" transparent="1" alphatest="on" />
-	  <ePixmap position="280,0" size="140,40" pixmap="skin_default/buttons/yellow.png" transparent="1" alphatest="on" />
-	  <ePixmap position="420,0" size="140,40" pixmap="skin_default/buttons/blue.png" transparent="1" alphatest="on" />
-	  <widget source="key_red" render="Label" position="0,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
-	  <widget source="key_green" render="Label" position="140,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
-	  <widget source="key_yellow" render="Label" position="280,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
-	  <widget source="key_blue" render="Label" position="420,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
-	  <widget name="text" position="5,45" size="550,380" font="Console;20" />
+            <ePixmap position="0,0" size="140,40" pixmap="skin_default/buttons/red.png" transparent="1" alphatest="on" />
+            <ePixmap position="140,0" size="140,40" pixmap="skin_default/buttons/green.png" transparent="1" alphatest="on" />
+            <ePixmap position="280,0" size="140,40" pixmap="skin_default/buttons/yellow.png" transparent="1" alphatest="on" />
+            <ePixmap position="420,0" size="140,40" pixmap="skin_default/buttons/blue.png" transparent="1" alphatest="on" />
+            <widget source="key_red" render="Label" position="0,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
+            <widget source="key_green" render="Label" position="140,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
+            <widget source="key_yellow" render="Label" position="280,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
+            <widget source="key_blue" render="Label" position="420,0" zPosition="1" size="140,40" valign="center" halign="center" font="Regular;21" transparent="1" foregroundColor="white" />
+            <widget name="text" position="5,45" size="550,380" font="Console;20" />
         </screen>"""
 
     currentUrl = None
@@ -132,7 +132,7 @@ class CurlyTx(Screen, HelpableScreen):
         self["text"].pageDown()
 
     def prevPage(self):
-        if self.currentPage == None:
+        if self.currentPage is None:
             return
 
         pageId = self.currentPage - 1
@@ -141,7 +141,7 @@ class CurlyTx(Screen, HelpableScreen):
         self.loadUrl(pageId)
 
     def nextPage(self):
-        if self.currentPage == None:
+        if self.currentPage is None:
             return
 
         pageId = self.currentPage + 1
@@ -150,13 +150,13 @@ class CurlyTx(Screen, HelpableScreen):
         self.loadUrl(pageId)
 
     def reload(self):
-        if self.currentPage == None:
+        if self.currentPage is None:
             return
 
         self.loadUrl(self.currentPage)
 
     def loadUrl(self, pageId):
-        if pageId == None:
+        if pageId is None:
             self.loadNoPage()
             return
 
@@ -225,7 +225,7 @@ class CurlyTx(Screen, HelpableScreen):
         if len(config.plugins.CurlyTx.pages) == 0:
             self.currentPage = None
             self.loadUrl(self.currentPage)
-        elif self.currentPage == None:
+        elif self.currentPage is None:
             self.currentPage = 0
             self.loadUrl(self.currentPage)
 

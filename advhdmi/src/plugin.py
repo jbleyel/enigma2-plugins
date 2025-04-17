@@ -15,7 +15,12 @@ from Components.ConfigList import ConfigListScreen
 from time import localtime, mktime
 from Components.HdmiCec import hdmi_cec
 
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 
 
 def _print(outtxt):
@@ -182,7 +187,7 @@ def main(session, **kwargs):
 
 
 def showinSetup(menuid):
-	if getImageDistro() in ('openhdf'):
+	if IMAGEDISTRO in ('openhdf'):
 		if menuid != "video_menu":
 			return []
 	else:
@@ -304,7 +309,7 @@ def Cec__receivedStandby(self):
 def Cec__receivedNowActive(self):
 	if config.cec.receivepower.value:
 		from Screens.Standby import inStandby
-		if inStandby != None:
+		if inStandby is not None:
 			if callHook(ADVHDMI_BEFORE_RECEIVED_NOWACTIVE):
 				inStandby.Power()
 				callHook(ADVHDMI_AFTER_RECEIVED_NOWACTIVE)

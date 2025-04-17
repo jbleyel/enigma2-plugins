@@ -31,7 +31,7 @@ else:
 # getargspec is deprecated in Py3 in favour of getfullargspec
 	__getargs = inspect.getfullargspec
 
-__vps_TimerEntry_createSetup_has_widget = len(__getargs(TimerEntry.createSetup).args) > 1
+__vps_TimerEntry_createSetup_has_widget = len(__getargs(TimerEntry.createSetup).args) > 1 and __getargs(TimerEntry.createSetup).args[1] != "appendItems"
 
 # We cater for any parameters thrown at us and pass it all on.
 #
@@ -47,7 +47,7 @@ def new_RecordTimer_saveTimer(self, *args, **kwargs):
 
 	try:
 		for timer in self.timer_list:
-			if timer.dontSave or timer.vpsplugin_enabled is None or timer.vpsplugin_enabled == False:
+			if timer.dontSave or timer.vpsplugin_enabled is None or timer.vpsplugin_enabled is False:
 				continue
 
 			list.append('<timer')
@@ -210,7 +210,7 @@ def new_TimerEntry_createSetup(self, widget="config"):
 	# added by VPS-Plugin
 	self.timerVps_enabled_Entry = None
 	try:
-		if self.timerentry_justplay.value != "zap" and self.timerentry_type.value == "once" and config.plugins.vps.enabled.value == True:
+		if self.timerentry_justplay.value != "zap" and self.timerentry_type.value == "once" and config.plugins.vps.enabled.value is True:
 			self.timerVps_enabled_Entry = getConfigListEntry(_("Enable VPS"), self.timerentry_vpsplugin_enabled)
 			self.list.append(self.timerVps_enabled_Entry)
 
@@ -282,7 +282,7 @@ def new_TimerEntry_keySave(self, *args, **kwargs):
 	try:
 		self.timer.vpsplugin_enabled = self.timerentry_vpsplugin_enabled.value != "no"
 		self.timer.vpsplugin_overwrite = self.timerentry_vpsplugin_enabled.value == "yes"
-		if self.timer.vpsplugin_enabled == True:
+		if self.timer.vpsplugin_enabled is True:
 			from .Vps import vps_timers
 			vps_timers.checksoon()
 
@@ -389,7 +389,7 @@ def new_InfoBarInstantRecord_recordQuestionCallback(self, answer, *args, **kwarg
 def register_vps():
 	global vps_already_registered
 
-	if vps_already_registered == False:
+	if vps_already_registered is False:
 		RecordTimerEntry.vpsplugin_enabled = None
 		RecordTimerEntry.vpsplugin_overwrite = None
 		RecordTimerEntry.vpsplugin_time = None

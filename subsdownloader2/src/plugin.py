@@ -133,41 +133,41 @@ class SubsDownloaderApplication(Screen):
 		font_size = int(int(0.0174 * Skin_width))
 
 		self.skin = "<screen position=\"center," + str(int(0.078 * Skin_height)) + "\" size=\"" + str(Skin_width) + "," + str(Skin_height) + "\" title= \"Subtitle downloader\" > \
-	        <widget name=\"fileList\" position=\"" + str(widget_name_x_position) + "," + str(1 * widget_name_y_position) + "\" size=\"" + str(widget_name_width) + "," + str(widget_name_height) + "\" scrollbarMode=\"showOnDemand\" /> \
-	        <widget name=\"subsList\" position=\"" + str(widget_name_x_position) + "," + str(2 * widget_name_y_position + 1 * widget_name_height) + "\" size=\"" + str(widget_name_width) + "," + str(widget_name_height) + "\" scrollbarMode=\"showOnDemand\" /> \
-	        <widget name=\"commertialPicture\" position=\"" + str(widget_name_x_position) + "," + str(3 * widget_name_y_position + 2 * widget_name_height) + "\" size=\"" + str(int(0.98 * Skin_width)) + "," + str(widget_name_height) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget name=\"serverPicture\" position=\"" + str(widget_source_x_position) + "," + str(widget_name_x_position) + "\" size=\"" + str(int(0.252 * Skin_width)) + "," + str(int(0.0849 * Skin_height)) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_menu.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position) + "\" size=\"36,26\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_menu\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_help.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_help\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_text.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 2) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_text\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 2) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_next.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 3) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_next\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 3) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_last.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 4) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_last\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 4) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_info.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 5) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_info\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 5) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_0.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 6) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-	        <widget source=\"key_0\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 6) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        <ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_blue.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 7) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
-		<widget source=\"key_blue\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 7) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
-	        </screen>"
+			<widget name=\"fileList\" position=\"" + str(widget_name_x_position) + "," + str(1 * widget_name_y_position) + "\" size=\"" + str(widget_name_width) + "," + str(widget_name_height) + "\" scrollbarMode=\"showOnDemand\" /> \
+			<widget name=\"subsList\" position=\"" + str(widget_name_x_position) + "," + str(2 * widget_name_y_position + 1 * widget_name_height) + "\" size=\"" + str(widget_name_width) + "," + str(widget_name_height) + "\" scrollbarMode=\"showOnDemand\" /> \
+			<widget name=\"commertialPicture\" position=\"" + str(widget_name_x_position) + "," + str(3 * widget_name_y_position + 2 * widget_name_height) + "\" size=\"" + str(int(0.98 * Skin_width)) + "," + str(widget_name_height) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget name=\"serverPicture\" position=\"" + str(widget_source_x_position) + "," + str(widget_name_x_position) + "\" size=\"" + str(int(0.252 * Skin_width)) + "," + str(int(0.0849 * Skin_height)) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_menu.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position) + "\" size=\"36,26\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_menu\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_help.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_help\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_text.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 2) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_text\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 2) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_next.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 3) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_next\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 3) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_last.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 4) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_last\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 4) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_info.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 5) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_info\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 5) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_0.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 6) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_0\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 6) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+			<ePixmap pixmap=\"/usr/lib/enigma2/python/Plugins/Extensions/SubsDownloader2/pic/buttons/HD/key_blue.png\" position=\"" + str(widget_source_x_position) + "," + str(widget_source_y_position + widget_source_y_size * 7) + "\" size=\"36," + str(widget_source_y_size) + "\" zPosition=\"1\" alphatest=\"on\" /> \
+			<widget source=\"key_blue\" render=\"Label\" position=\"" + str(widget_source_x_position + 43) + "," + str(widget_source_y_position + widget_source_y_size * 7) + "\" zPosition=\"1\" size=\"" + str(widget_source_x_size) + "," + str(widget_source_y_size) + "\" font=\"Regular;" + str(font_size) + "\" halign=\"left\" valign=\"center\" transparent=\"1\" /> \
+		</screen>"
 
 		os.system('mkdir /tmp/SubsDownloader_cache')
 		self.subsListDownloaded = 0
 		self.localConvertion = False
 		self.MyBox = HardwareInfo().get_device_name()
 		self.textEXTENSIONS = {
-		        "srt": "text",
-		        "txt": "text",
-		        "sub": "text",
-		        "nfo": "text",
-		        "cuts": "movie_timer",
-		        "zip": "package",
-		        "rar": "package"
-		        }
+			"srt": "text",
+			"txt": "text",
+			"sub": "text",
+			"nfo": "text",
+			"cuts": "movie_timer",
+			"zip": "package",
+			"rar": "package"
+		}
 		#TODO OBSLUGA PLIKOW BZIP, ZIP, RAR
 		#TODO File manager (delete, copy, move, rename
 		self["key_menu"] = StaticText("Config menu")
@@ -189,7 +189,7 @@ class SubsDownloaderApplication(Screen):
 		Screen.__init__(self, session)
 		self.altservice = self.session.nav.getCurrentlyPlayingServiceReference()
 		list = []
-		if config.plugins.subsdownloader.pathUseMediaPaternFilter.value == True:
+		if config.plugins.subsdownloader.pathUseMediaPaternFilter.value is True:
 			self["fileList"] = FileList(fileListPath, matchingPattern=None)
 		else:
 			self["fileList"] = FileList(fileListPath, matchingPattern=self.mediaPatern)
@@ -203,31 +203,29 @@ class SubsDownloaderApplication(Screen):
 		self.isVisible = True
 		#self.fileManager_orders = []
 
-		self["myActionMap_showned"] = ActionMap(["ChannelSelectBaseActions", "WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions", "SubsDownloaderApplication_actions"],
-	        {
-	                "ok": self.ok,
-	                "back": self.closeApplication,
-	                "about": self.showAboutScreen,
-	                "subSelect": self.downloadSubtitle,
-	                "menu": self.showConfigScreen,
-	                "nextMarker": self.set_listSubs_enabled,
-	                "prevMarker": self.set_listFile_enabled,
-	                "up": self.goUp,
-	                "down": self.goDown,
-	                "left": self.goLeft,
-	                "right": self.goRight,
-	                "info": self.showFilemanagerScreen_file_info_on_screen_title,  # self.FM_file_Info,
-	                "localConv": self.localConvertionSublist,
-	                "0": self.skinVisibility,
-	                #"red": self.goRed,
-	                #"green": self.goGreen,
-	                #"yellow": self.goYellow,
-	                "blue": self.showFilemanagerScreen_without_callback,
-	        }, -1)
+		self["myActionMap_showned"] = ActionMap(["ChannelSelectBaseActions", "WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions", "SubsDownloaderApplication_actions"], {
+			"ok": self.ok,
+			"back": self.closeApplication,
+			"about": self.showAboutScreen,
+			"subSelect": self.downloadSubtitle,
+			"menu": self.showConfigScreen,
+			"nextMarker": self.set_listSubs_enabled,
+			"prevMarker": self.set_listFile_enabled,
+			"up": self.goUp,
+			"down": self.goDown,
+			"left": self.goLeft,
+			"right": self.goRight,
+			"info": self.showFilemanagerScreen_file_info_on_screen_title,  # self.FM_file_Info,
+			"localConv": self.localConvertionSublist,
+			"0": self.skinVisibility,
+			#"red": self.goRed,
+			#"green": self.goGreen,
+			#"yellow": self.goYellow,
+			"blue": self.showFilemanagerScreen_without_callback,
+		}, -1)
 
-		self["myActionMap_hidded"] = ActionMap(["ChannelSelectBaseActions", "WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions", "SubsDownloaderApplication_actions"],
-		{
-		        "0": self.skinVisibility,
+		self["myActionMap_hidded"] = ActionMap(["ChannelSelectBaseActions", "WizardActions", "DirectionActions", "MenuActions", "NumberActions", "ColorActions", "SubsDownloaderApplication_actions"], {
+			"0": self.skinVisibility,
 		}, -1)
 		self["myActionMap_showned"].setEnabled(True)
 		self["myActionMap_hidded"].setEnabled(False)
@@ -261,7 +259,7 @@ class SubsDownloaderApplication(Screen):
 		self.set_title()
 
 	def CommertialBannerDisplayTimerAction(self):
-		if self.download_commertial_pictures.is_alive() == False and self.__commertial_pictures == []:
+		if self.download_commertial_pictures.is_alive() is False and self.__commertial_pictures == []:
 			self.__commertial_pictures = self.Find_Commertial_Picure()
 			self.__commertial_pictures.sort()
 			self.CommertialBannerTimer.start(10, False)
@@ -278,7 +276,7 @@ class SubsDownloaderApplication(Screen):
 				self.CommertialBannerTimer.start(7500, False)
 
 	def skinVisibility(self):
-		if self.isVisible == True:
+		if self.isVisible is True:
 			self.isVisible = False
 			self["myActionMap_showned"].setEnabled(False)
 			self["myActionMap_hidded"].setEnabled(True)
@@ -290,9 +288,9 @@ class SubsDownloaderApplication(Screen):
 			self.show()
 
 	def set_title(self):
-		if is_libmediainfo == False:
+		if is_libmediainfo is False:
 			self.setTitle("Subtitle downloader (without libmediainfo)")
-		elif is_libmediainfo == True:
+		elif is_libmediainfo is True:
 			self.setTitle("Subtitle downloader (with libmediainfo)")
 
 	def showFilemanagerScreen_file_info_on_screen_title(self):
@@ -333,7 +331,7 @@ class SubsDownloaderApplication(Screen):
 				#order = "ls"
 				#self.session.open(MessageBox,_("%s \n %s \n %s!" % (self.showFilemanagerScreen_command[0],self.showFilemanagerScreen_command[1],self.showFilemanagerScreen_command[2])), MessageBox.TYPE_ERROR)
 
-			if order != None:
+			if order is not None:
 				try:
 					os.system(order)
 				except:
@@ -372,7 +370,7 @@ class SubsDownloaderApplication(Screen):
 			return humansize
 
 		def VirtualKeyboart_dir_rename_Callback(callback):
-			if callback == None or callback == "":
+			if callback is None or callback == "":
 				self.showFilemanagerScreen_command = ("Do_nothing", self.showFilemanagerScreen_command[1])
 				self.showFilemanagerScreen_without_callback()
 			else:
@@ -380,7 +378,7 @@ class SubsDownloaderApplication(Screen):
 				self.showFilemanagerScreen_without_callback()
 
 		def VirtualKeyboart_file_rename_Callback(callback):
-			if callback == None or callback == "":
+			if callback is None or callback == "":
 				self.showFilemanagerScreen_command = ("Do_nothing", self.showFilemanagerScreen_command[1])
 				self.showFilemanagerScreen_without_callback()
 			else:
@@ -390,7 +388,7 @@ class SubsDownloaderApplication(Screen):
 		def get_FileManagerCommands_callback(callback):
 			self.showFilemanagerScreen_command = callback
 
-			if self.fileManagerEnabled == True:
+			if self.fileManagerEnabled is True:
 				if self.showFilemanagerScreen_command[0] == "copy" or self.showFilemanagerScreen_command[0] == "move":
 					pass  # do nothing execute command during blue button press
 				elif self.showFilemanagerScreen_command[0] == "rename":
@@ -404,7 +402,7 @@ class SubsDownloaderApplication(Screen):
 					#for Do_nothing and delete
 					self.showFilemanagerScreen_without_callback()
 
-		if self.fileManagerEnabled == False and callback != "file_info_on_screen_title":
+		if self.fileManagerEnabled is False and callback != "file_info_on_screen_title":
 			if self["fileList"].canDescent():
 				current_dir = self["fileList"].getCurrentDirectory()
 				current_selection = self["fileList"].getSelection()[0]
@@ -423,7 +421,6 @@ class SubsDownloaderApplication(Screen):
 
 
 # !!!!!!!!!!!! PICTURE FUNCTIONS !!!!!!!!!!!!!!
-
 
 	def display_Server_Picture(self):
 		"""Function display suittalbe picture in ["serverPicture"] (based on subtitle server)"""
@@ -536,10 +533,7 @@ class SubsDownloaderApplication(Screen):
 		self.serverAvailableSubtitles = []
 		position = 0
 		for x in serverList:
-			self.serverAvailableSubtitles.append((str(x['language']).replace("u'", "").replace("'", "") + "_"
-			                                      + str(x['cd']).replace("u'", "").replace("'", "") + "cd__"
-			                                      + str(x['title']).replace("u'", "").replace("'", "") + " "
-			                                      + str(x['release']).replace("u'", "").replace("'", ""), position))  # makes list of subtitles
+			self.serverAvailableSubtitles.append((str(x['language']).replace("u'", "").replace("'", "") + "_" + str(x['cd']).replace("u'", "").replace("'", "") + "cd__" + str(x['title']).replace("u'", "").replace("'", "") + " " + str(x['release']).replace("u'", "").replace("'", ""), position))  # makes list of subtitles
 			position = position + 1
 		self.subsListDownloaded = 1
 		self["subsList"].setList(self.serverAvailableSubtitles)
@@ -622,7 +616,7 @@ class SubsDownloaderApplication(Screen):
 			self.movie_filename = selected_movie_dir + selected_movie_file
 			file_list = self["fileList"].getFileList()
 			for x in file_list:
-				if x[0][-1] != True:  # not directory
+				if x[0][-1] is not True:  # not directory
 					if self.return_media_kind(self.return_extention(x[0][0])) == "text":  # and LocalConvertedSubtitle.detect_format(LocalConvertedSubtitle.subs_file) != "None":
 						#localCodePageDecoded= self.chardetOutputTranslation(self.getSubtitleCodepade(selected_movie_dir+x[0][0]))
 						self.subtitle_codepade = localCodePageDecoded = chardetOutputTranslation(self.getSubtitleCodepade(selected_movie_dir + x[0][0]))
@@ -747,9 +741,9 @@ class SubsDownloaderApplication(Screen):
 
 	def virtualKeyboardOpen(self):
 		if config.plugins.subsdownloader.Napisy24SearchMethod.value == "IMDB then movie filname" or config.plugins.subsdownloader.Napisy24SearchMethod.value == "movie filname":
-			if config.plugins.subsdownloader.Napisy24MovieNameMethod.value == False:
+			if config.plugins.subsdownloader.Napisy24MovieNameMethod.value is False:
 				movie_name = self["fileList"].getFilename().rsplit(".", 1)[0]
-			elif config.plugins.subsdownloader.Napisy24MovieNameMethod.value == True:
+			elif config.plugins.subsdownloader.Napisy24MovieNameMethod.value is True:
 				temp_struct = GuessFileData_from_FileName(SubtitleDatabase.tvshowRegex, SubtitleDatabase.tvshowRegex2, SubtitleDatabase.movieRegex)
 				movie_name = temp_struct.return_data_string(self["fileList"].getFilename())
 			self.session.openWithCallback(self.VirtualKeyboartCallback, VirtualKeyBoard, title=("Search subtitle(s) for:\n%s" % self["fileList"].getFilename()), text=movie_name)
@@ -766,28 +760,28 @@ class SubsDownloaderApplication(Screen):
 		elif config.plugins.subsdownloader.Napisy24SearchMethod.value == "IMDB then movie filname":
 			N24_imdb_search = True
 			N24_movie_name = callback
-		elif config.plugins.subsdownloader.Napisy24SearchMethod.value == "movie filname" and callback != None:
+		elif config.plugins.subsdownloader.Napisy24SearchMethod.value == "movie filname" and callback is not None:
 			N24_imdb_search = False
 			N24_movie_name = callback
 		self.subtitles = Napisy24_pl(self.movie_filename, N24_movie_name)
-		if N24_imdb_search == True:
+		if N24_imdb_search is True:
 			#IMDB search method - seek NFO file
 			IMDM_results = self.subtitles.IMDB_idenifier_search()
-			if IMDM_results != False:
+			if IMDM_results is not False:
 				#IMDB search method - if NFO contains IMBD try to download XML by IMBD number
-				if self.subtitles.getNapisy24_SubtitleListXML("downloada_subtitle_list_by_IMDB") == False and N24_movie_name != None:
+				if self.subtitles.getNapisy24_SubtitleListXML("downloada_subtitle_list_by_IMDB") is False and N24_movie_name is not None:
 					#IMDB then movie filname dearch method - If XML download by IMBD number fails try to download by movie name
 					self.subtitles.getNapisy24_SubtitleListXML("downloada_subtitle_list_by_film_name")
-			elif IMDM_results == False:
+			elif IMDM_results is False:
 				#IMDB then movie filname dearch method - in case there is no NFO file
 				self.subtitles.getNapisy24_SubtitleListXML("downloada_subtitle_list_by_film_name")
-		if N24_imdb_search == False and N24_movie_name != None:
+		if N24_imdb_search is False and N24_movie_name is not None:
 			#movie filname search method
 			self.subtitles.getNapisy24_SubtitleListXML("downloada_subtitle_list_by_film_name")
 		if self.subtitles.subtitle_dict != []:
 			self.setServerAvailableSubtitles_for_Napisy24(self.subtitles.subtitle_dict)
 		else:
-			if (IMDM_results == False or IMDM_results == None) and N24_movie_name == None:
+			if (IMDM_results is False or IMDM_results is None) and N24_movie_name is None:
 				if config.plugins.subsdownloader.Napisy24SearchMethod.value == "IMDB":
 					self.session.open(MessageBox, _("NAPISY24 searching method error:\n\nCan't find IMDB identifier for this movie.\nPlease try another searching method."), MessageBox.TYPE_INFO, timeout=10)
 				elif config.plugins.subsdownloader.Napisy24SearchMethod.value == "IMDB then movie filname":
@@ -804,7 +798,7 @@ class SubsDownloaderApplication(Screen):
 		"""Creare media patern to file browser based on self.textEXTENSIONS from this module
 		and EXTENSIONS fron FileList module"""
 		self.textEXTENSIONS.update(EXTENSIONS)
-		return "^.*\.(" + str.join('|', self.textEXTENSIONS.keys()) + ")"
+		return r"^.*\.(" + str.join('|', self.textEXTENSIONS.keys()) + ")"
 
 	def return_extention(self, file_path):
 		"""get filename and return file extention"""
@@ -833,7 +827,7 @@ class SubsDownloaderApplication(Screen):
 
 	def MainMenuCallback(self):
 		self.display_Server_Picture()
-		if config.plugins.subsdownloader.pathUseMediaPaternFilter.value == True:
+		if config.plugins.subsdownloader.pathUseMediaPaternFilter.value is True:
 			self["fileList"].matchingPattern = self.mediaPatern
 		else:
 			self["fileList"].matchingPattern = None
@@ -841,11 +835,11 @@ class SubsDownloaderApplication(Screen):
 
 	def set_listFile_enabled(self):
 		"""Function makes self["fileList"] as active"""
-		if self.fileManagerEnabled == False:
+		if self.fileManagerEnabled is False:
 			self["fileList"].selectionEnabled(1)
 			self["subsList"].selectionEnabled(0)
 			self.selectedList = self["fileList"]
-		elif self.fileManagerEnabled == True:
+		elif self.fileManagerEnabled is True:
 			self.set_FileManager_disabled()
 			self.clearSubList()
 
@@ -882,7 +876,7 @@ class SubsDownloaderApplication(Screen):
 
 	def ok(self):
 		global DVDPlayerAviable
-		if self.selectedList == self["fileList"] and self.fileManagerEnabled == False:
+		if self.selectedList == self["fileList"] and self.fileManagerEnabled is False:
 			if self["fileList"].canDescent():
 				"""If dir makes cd"""
 				self["fileList"].descent()
@@ -890,7 +884,7 @@ class SubsDownloaderApplication(Screen):
 				filename = self["fileList"].getCurrentDirectory() + self["fileList"].getFilename()
 				testFileName = self["fileList"].getFilename()
 				testFileName = testFileName.lower()
-				if filename != None:
+				if filename is not None:
 					if self.return_media_kind(self.return_extention(testFileName)) == "movie":
 						#self.session.open(MoviePlayer, filename)
 						self.session.openWithCallback(self["fileList"].refresh, MoviePlayer, filename)
@@ -949,10 +943,10 @@ class SubsDownloaderApplication(Screen):
 							self.session.open(vEditor, filename)
 						else:
 							self.session.open(MessageBox, _("File size is bigger than 61440.\n\n Subs Downloader can't manage it with vEditor."), MessageBox.TYPE_INFO, timeout=5)
-		if self.selectedList == self["subsList"] and self.fileManagerEnabled == False:
+		if self.selectedList == self["subsList"] and self.fileManagerEnabled is False:
 			whichSubtitleDownload = "None"
 			subtitle_filename = []
-			if self.localConvertion == False:
+			if self.localConvertion is False:
 				#download subtitle from server\
 				if config.plugins.subsdownloader.subtitleserver.value in PERISCOPE_PLUGINS:  # == "OpenSubtitle":
 					whichSubtitleDownload = self["subsList"].getCurrent()[1]
@@ -971,7 +965,7 @@ class SubsDownloaderApplication(Screen):
 
 				if config.plugins.subsdownloader.subtitleserver.value == "Napisy24":
 					whichSubtitleDownload = self["subsList"].getCurrent()[1]
-					if self.subtitles.save_downloaded_zip(whichSubtitleDownload) == True:
+					if self.subtitles.save_downloaded_zip(whichSubtitleDownload) is True:
 						subtitle_filename = self.subtitles.extract_zip_file()
 						try:
 							os.remove(self.subtitles.ZipFilePath)  # remove downloaded zip file
@@ -980,7 +974,7 @@ class SubsDownloaderApplication(Screen):
 
 				if isinstance(subtitle_filename, type("string")):
 					self.convert_subtitle_to_movie(self.movie_filename, subtitle_filename)
-				elif isinstance(subtitle_filename, type([])) or subtitle_filename == None:
+				elif isinstance(subtitle_filename, type([])) or subtitle_filename is None:
 					if len(subtitle_filename) == 1:
 						self.convert_subtitle_to_movie(self.movie_filename, subtitle_filename[0])
 					elif len(subtitle_filename) > 1:
@@ -995,13 +989,13 @@ class SubsDownloaderApplication(Screen):
 				if subtitle_filename == [] or subtitle_filename == "":
 					self.session.open(MessageBox, _("There is problem with downloading or saveing subtitles on storage device."), MessageBox.TYPE_INFO, timeout=5)
 
-			elif self.localConvertion == True:
+			elif self.localConvertion is True:
 				#local convertion in progress
 				whichSubtitleDownload = self["subsList"].getCurrent()[1]
 				subtitle_filename.append(whichSubtitleDownload)
 				self.convert_subtitle_to_movie(self.movie_filename, subtitle_filename[0])
 			#TODO OTHER SUBTITLE SERVERS HANDLE
-		if self.selectedList == self["subsList"] and self.fileManagerEnabled == True:
+		if self.selectedList == self["subsList"] and self.fileManagerEnabled is True:
 			a = os.listdir(self["subsList"].getCurrent()[1])
 			dir_count = 0
 			for x in a:
@@ -1014,7 +1008,7 @@ class SubsDownloaderApplication(Screen):
 		os.system('rm -r %s' % Subtitle_Downloader_temp_dir)
 		print("\n[SubsDownloaderApplication] cancel\n")
 		self.session.nav.playService(self.altservice)
-		if config.plugins.subsdownloader.pathSave.value == True:
+		if config.plugins.subsdownloader.pathSave.value is True:
 			config.plugins.subsdownloader.path.value = self["fileList"].getCurrentDirectory()
 			config.plugins.subsdownloader.path.save()
 		self.close(None)
@@ -1055,9 +1049,8 @@ class FileManagerCommands(Screen):
 		Screen.__init__(self, session)
 		self.list = []
 		self["myCommands"] = MenuList(self.list)
-		self["setupActions"] = ActionMap(["SetupActions", "DirectionActions", "WizardActions", "SubsDownloaderConfig_actions"],
-		{
-		        "ok": self.ExitWithDoingSomething,
+		self["setupActions"] = ActionMap(["SetupActions", "DirectionActions", "WizardActions", "SubsDownloaderConfig_actions"], {
+			"ok": self.ExitWithDoingSomething,
 			"cancel": self.ExitWithoutDoingNothing
 		}, -1)
 		self.createCommandsMenu()
@@ -1076,7 +1069,7 @@ class FileManagerCommands(Screen):
 
 	def ExitWithDoingSomething(self):
 		def delete_command_notification(callback):
-			if callback == True:
+			if callback is True:
 				self.close(("delete", self.file_to_manage))
 
 			else:
@@ -1104,9 +1097,9 @@ class SubsDownloaderConfig(ConfigListScreen, Screen):
 		self.session = session
 		Screen.__init__(self, session)
 		self["extendLibMediaInfo"] = Label()
-		if is_libmediainfo == False and os.popen("unrar").readlines() != []:
+		if is_libmediainfo is False and os.popen("unrar").readlines() != []:
 			self["extendLibMediaInfo"].setText("Press YELLOW button to install libmediainfo.")
-		elif is_libmediainfo == False and os.popen("unrar").readlines() == []:
+		elif is_libmediainfo is False and os.popen("unrar").readlines() == []:
 			self["extendLibMediaInfo"].setText("Press YELLOW button to install libmediainfo and unrar.")
 		elif os.popen("unrar").readlines() == []:
 			self["extendLibMediaInfo"].setText("Press YELLOW button to install unrar.")
@@ -1114,11 +1107,10 @@ class SubsDownloaderConfig(ConfigListScreen, Screen):
 			self["extendLibMediaInfo"].setText("")
 		self.list = []
 		ConfigListScreen.__init__(self, self.list, session)
-		self["setupActions"] = ActionMap(["SetupActions", "DirectionActions", "WizardActions", "SubsDownloaderConfig_actions"],
-		{
-		        "left": self.keyLeft,
-		        "right": self.keyRight,
-		        "ok": self.saveConfig,
+		self["setupActions"] = ActionMap(["SetupActions", "DirectionActions", "WizardActions", "SubsDownloaderConfig_actions"], {
+			"left": self.keyLeft,
+			"right": self.keyRight,
+			"ok": self.saveConfig,
 			"cancel": self.cancelWithoutSave  # add the RC Command "cancel" to close your Screen
 		}, -1)
 		self.createConfigMenu()
@@ -1149,7 +1141,7 @@ class SubsDownloaderConfig(ConfigListScreen, Screen):
 			self.list.append(getConfigListEntry(_("Use \"guessFileData\" method for movie filname:"), config.plugins.subsdownloader.Napisy24MovieNameMethod))
 			pass
 		self.list.append(getConfigListEntry(_("Extended configuratin menu:"), config.plugins.subsdownloader.extendedMenuConfig))
-		if config.plugins.subsdownloader.extendedMenuConfig.value == True:
+		if config.plugins.subsdownloader.extendedMenuConfig.value is True:
 			self.list.append(getConfigListEntry(_("Save last FileList path:"), config.plugins.subsdownloader.pathSave))
 			self.list.append(getConfigListEntry(_("Use media patern filter in FileList:"), config.plugins.subsdownloader.pathUseMediaPaternFilter))
 			self.list.append(getConfigListEntry(_("Add Subs Downloader to BlueButton menu:"), config.plugins.subsdownloader.BlueButtonMenu))
@@ -1385,7 +1377,7 @@ class MoviePlayer(MP_parent):
 		print(("", self, "I"))
 		service = self.session.nav.getCurrentService()
 		seek = service and service.seek()
-		if seek != None:
+		if seek is not None:
 			pts = seek.getPlayPosition()[1]
 
 			found = False
@@ -1558,6 +1550,6 @@ def Plugins(**kwargs):
 	desc_menu_Blue_button_menu = PluginDescriptor(name="SubsDownloader", description="Download subtitle to any movie", where=PluginDescriptor.WHERE_EXTENSIONSMENU, fnc=main)
 	list = []
 	list.append(desc_plugin_menu)
-	if config.plugins.subsdownloader.BlueButtonMenu.value == True:
+	if config.plugins.subsdownloader.BlueButtonMenu.value is True:
 		list.append(desc_menu_Blue_button_menu)
 	return list

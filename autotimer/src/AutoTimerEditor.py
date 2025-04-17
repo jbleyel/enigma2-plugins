@@ -182,7 +182,7 @@ class AutoTimerEditorBase:
 		else:
 			self.serviceRestriction = False
 
-		self.isIPTV = bool([service for service in timer.services if ":http" in service])
+		self.isIPTV = bool([service for service in timer.services if "%3a//" in service])
 
 		self.createSetup(timer)
 
@@ -261,8 +261,12 @@ class AutoTimerEditorBase:
 			end = timer.getOffsetEnd()
 		else:
 			default = False
-			begin = 5
-			end = 5
+			if hasattr(config.recording, "zap_margin_before"):  # add support for new timer margins by openatv
+				begin = getattr(config.recording, "zap_margin_before" if timer.justplay else "margin_before").value
+				end = getattr(config.recording, "zap_margin_after" if timer.justplay else "margin_after").value
+			else:
+				begin = 5
+				end = 5
 		self.offset = NoSave(ConfigEnableDisable(default=default))
 		self.offsetbegin = NoSave(ConfigNumber(default=begin))
 		self.offsetend = NoSave(ConfigNumber(default=end))
@@ -346,8 +350,7 @@ class AutoTimerEditorBase:
 				("0", _("Title")),
 				("1", _("Title and Short description")),
 				("2", _("Title and all descriptions")),
-			],
-		    default=str(timer.searchForDuplicateDescription)
+			], default=str(timer.searchForDuplicateDescription)
 		))
 
 		# Custom Location
@@ -427,7 +430,7 @@ if getDesktop(0).size().width() >= 1280:
 	HD = True
 
 
-class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
+class AutoTimerEditor(ConfigListScreen, Screen, AutoTimerEditorBase):
 	"""Edit AutoTimer"""
 	if HD:
 		skin = """<screen name="AutoTimerEditor" title="Edit AutoTimer" position="center,center" size="700,572">
@@ -466,9 +469,11 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 		# Summary
 		self.setup_title = _("AutoTimer Editor")
 		self.onChangedEntry = []
+		self.initEndTime = True
 
 		# We might need to change shown items, so add some notifiers
 		self.justplay.addNotifier(self.reloadList, initial_call=False)
+		self.setEndtime.addNotifier(self.reloadList, initial_call=False)
 		self.timespan.addNotifier(self.reloadList, initial_call=False)
 		self.timeframe.addNotifier(self.reloadList, initial_call=False)
 		self.offset.addNotifier(self.reloadList, initial_call=False)
@@ -534,9 +539,7 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 		self.reloadList(True)
 
 	def renameServiceButton(self):
-		if self.isIPTV:
-			self["key_blue"].text = ""
-		elif self.serviceRestriction:
+		if self.serviceRestriction:
 			self["key_blue"].text = _("Edit services")
 		else:
 			self["key_blue"].text = _("Add services")
@@ -556,6 +559,21 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 			self["help"].text = self.helpDict.get(cur[1], "")
 
 	def changed(self):
+		# add support for new timer margins by openatv
+		if hasattr(config.recording, "zap_margin_before"):
+			zap = self.justplay.value == "zap"
+
+			def reset():
+				self.offsetbegin.value = getattr(config.recording, "zap_margin_before" if zap else "margin_before").value
+				self.offsetend.value = getattr(config.recording, "zap_margin_after" if zap else "margin_after").value
+
+			if self.initEndTime and self["config"].getCurrent()[1] == self.justplay and zap:
+				self.setEndtime.value = getattr(config.recording, "zap_has_endtime").value
+				self.initEndTime = False
+				reset()
+			elif self["config"].getCurrent()[1] == self.offset and self.offset.value:
+				reset()
+
 		for x in self.onChangedEntry:
 			try:
 				x()
@@ -656,10 +674,9 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 
 		# Only allow editing offsets when it's enabled
 		if self.offset.value:
-			list.extend((
-				getConfigListEntry(_("Offset before recording (in m)"), self.offsetbegin),
-				getConfigListEntry(_("Offset after recording (in m)"), self.offsetend)
-			))
+			list.append(getConfigListEntry(_("Offset before recording (in m)"), self.offsetbegin))
+			if not self.justplay.value == "zap" or self.justplay.value == "zap" and self.setEndtime.value:
+				list.append(getConfigListEntry(_("Offset after recording (in m)"), self.offsetend))
 
 		list.append(getConfigListEntry(_("Set maximum duration"), self.duration))
 
@@ -743,14 +760,13 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 			self.renameFilterButton()
 
 	def editServices(self):
-		if not self.isIPTV:
-			self.session.openWithCallback(
-				self.editServicesCallback,
-				AutoTimerServiceEditor,
-				self.serviceRestriction,
-				self.services,
-				self.bouquets
-			)
+		self.session.openWithCallback(
+			self.editServicesCallback,
+			AutoTimerServiceEditor,
+			self.serviceRestriction,
+			self.services,
+			self.bouquets
+		)
 
 	def editServicesCallback(self, ret):
 		if ret:
@@ -898,6 +914,8 @@ class AutoTimerEditor(Screen, ConfigListScreen, AutoTimerEditorBase):
 
 		# Offset
 		if self.offset.value:
+			if self.justplay.value == "zap" and not self.setEndtime.value:
+				self.offsetend.value = 0
 			self.timer.offset = (self.offsetbegin.value * 60, self.offsetend.value * 60)
 		else:
 			self.timer.offset = None
@@ -1028,6 +1046,8 @@ class AutoTimerEditorSilent(AutoTimerEditor):
 
 		# Offset
 		if self.offset.value:
+			if self.justplay.value == "zap" and not self.setEndtime.value:
+				self.offsetend.value = 0
 			self.timer.offset = (self.offsetbegin.value * 60, self.offsetend.value * 60)
 		else:
 			self.timer.offset = None
@@ -1120,8 +1140,7 @@ def CheckREList(re_list):
 			_("%s is not valid.") % val +
 			"\n\n" + str(ex) + "\n\n" +
 			_("See: ") +
-			"https://docs.python.org/%d.%d/library/re.html" % (pv_info.major, pv_info.minor)
-		       )
+			"https://docs.python.org/%d.%d/library/re.html" % (pv_info.major, pv_info.minor))
 		return errm
 	return ""
 
@@ -1153,7 +1172,7 @@ class ConfigRegex(ConfigText):
 		ConfigText.setValue(self, val)
 
 
-class AutoTimerFilterEditor(Screen, ConfigListScreen):
+class AutoTimerFilterEditor(ConfigListScreen, Screen):
 	"""Edit AutoTimer Filter"""
 
 	skin = """<screen name="AutoTimerFilterEditor" title="Edit AutoTimer Filters" position="center,center" size="565,280">
@@ -1375,7 +1394,7 @@ class AutoTimerFilterEditor(Screen, ConfigListScreen):
 		))
 
 
-class AutoTimerServiceEditor(Screen, ConfigListScreen):
+class AutoTimerServiceEditor(ConfigListScreen, Screen):
 	"""Edit allowed Services of a AutoTimer"""
 
 	skin = """<screen name="AutoTimerServiceEditor" title="Edit AutoTimer Services" position="center,center" size="565,280">
@@ -1518,7 +1537,7 @@ class AutoTimerServiceEditor(Screen, ConfigListScreen):
 				if pos != -1:
 					if sname[pos - 1] == ':':
 						pos -= 1
-					sname = sname[:pos + 1]
+						sname = sname[:pos + 1]
 
 			list.append(getConfigListEntry(_("Record on"), NoSave(ConfigSelection(choices=[(sname, ServiceReference(args[0]).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', ''))]))))
 			self["config"].setList(list)
@@ -1684,7 +1703,7 @@ def addAutotimerFromService(session, service=None):
 		if pos != -1:
 			if sref[pos - 1] == ':':
 				pos -= 1
-			sref = sref[:pos + 1]
+				sref = sref[:pos + 1]
 
 		sref = ServiceReference(sref)
 	if info:

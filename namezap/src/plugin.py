@@ -12,7 +12,12 @@ from Screens.InfoBar import InfoBar
 from Components.config import config, ConfigSubsection, ConfigSelection
 
 from .NamezapSetup import NamezapSetup
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 
 config.plugins.namezap = ConfigSubsection()
 config.plugins.namezap.style = ConfigSelection(choices=[
@@ -56,7 +61,7 @@ class NameZap(NumberZap):
 
 	def searchNumberHelper(self, serviceHandler, num, bouquet):
 		servicelist = self.serviceHandler.list(bouquet)
-		if not servicelist is None:
+		if servicelist is not None:
 			while num:
 				serviceIterator = servicelist.getNext()
 				if not serviceIterator.valid():  # check end of list
@@ -76,7 +81,7 @@ class NameZap(NumberZap):
 			service, number = self.searchNumberHelper(serviceHandler, number, bouquet)
 		else:
 			bouquetlist = serviceHandler.list(bouquet)
-			if not bouquetlist is None:
+			if bouquetlist is not None:
 				while number:
 					bouquet = bouquetlist.getNext()
 					if not bouquet.valid():  # check end of list
@@ -109,10 +114,10 @@ def main(session, *args, **kwargs):
 
 
 def menu(menuid):
-	if getImageDistro() in ('teamblue'):
+	if IMAGEDISTRO in ('teamblue'):
 		if menuid != "ui_menu":
 			return []
-	elif getImageDistro() in ('openhdf'):
+	elif IMAGEDISTRO in ('openhdf'):
 		if menuid != "gui_menu":
 			return []
 	else:

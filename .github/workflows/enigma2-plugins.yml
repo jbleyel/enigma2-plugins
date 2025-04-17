@@ -9,11 +9,11 @@ on:
 jobs:
   build:
     name: Build enigma2-plugins
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        gcc: [11,12,13]
-        python: ['3.10','3.11','3.12']
+        gcc: [11,13,14]
+        python: ['3.10','3.11','3.12','3.13']
     steps:
       - name: Install prerequisites
         run: |
@@ -23,11 +23,11 @@ jobs:
           sudo apt remove -y libunwind-14-dev
           sudo apt-get install -y g++-${{ matrix.gcc }} build-essential autoconf autotools-dev gettext python${{ matrix.python }}-dev libntirpc-dev
           
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'master'
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
@@ -35,14 +35,21 @@ jobs:
         env:
           CC: "gcc-${{ matrix.gcc }}"
           CXX: "g++-${{ matrix.gcc }}"
+          PY: "${{ matrix.python }}"
         run: |
           pip3 install six
           sed -i '/PKG_CHECK_MODULES(ENIGMA2, enigma2)/d' ./configure.ac
           sed -i '/PKG_CHECK_MODULES(LIBCRYPTO, libcrypto)/d' ./configure.ac
-          sudo cp /usr/include/tirpc/rpc/* /usr/include/rpc/
-          sudo cp /usr/include/tirpc/netconfig.h /usr/include/
+          sed -i '/networkbrowser\/src\/lib\/Makefile/d' ./configure.ac
+          sed -i 's/^SUBDIRS = icons lib$/SUBDIRS = icons/' ./networkbrowser/src/Makefile.am
+          sudo cp /usr/include/ntirpc/rpc/* /usr/include/rpc/
+          sudo cp /usr/include/ntirpc/netconfig.h /usr/include/
+          sudo cp /usr/include/ntirpc/intrinsic.h /usr/include/
+          sudo cp /usr/include/ntirpc/reentrant.h /usr/include/
+          sudo cp /usr/include/ntirpc/misc/* /usr/include/misc/
           autoreconf -i
           ./configure --without-debug --with-po
           make
           rm -rf ./subsdownloader2
+          if [ $PY != "3.12" ]; then rm -rf ./partnerbox2; fi
           python -m compileall .

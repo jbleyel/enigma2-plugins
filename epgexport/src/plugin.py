@@ -13,34 +13,37 @@
 #    - https://github.com/leaskovski/EPGExport/blob/master/src/plugin.py #
 #  2023-03-29 edit by s3n0:                                              #
 #    - source code modified for Python3 support                          #
+#    - CONTROL file (inside the IPK file) dependencies changed to:       #
+#      python3-requests python3-backports-lzma                           #
 ##########################################################################
 
 # PYTHON IMPORTS
 from backports.lzma import open as lzmaopen
-from os import mkdir, rmdir, symlink, remove, listdir, readlink
+from os import mkdir, symlink, remove, listdir, readlink
 from os.path import join, exists, islink, basename
 from gzip import open as gzipopen
 from time import time, localtime, mktime, strftime
-from datetime import datetime
+from datetime import datetime, timezone
 import xml.etree.ElementTree as etree
+from shutil import rmtree
 from socket import gethostname, getfqdn
 from time import gmtime, strftime
 from twisted.internet.threads import deferToThread
 from twisted.internet.reactor import listenTCP, run
-from twisted.web import http
+from twisted.web import http, static
 from twisted.web.resource import Resource
 from twisted.web.server import Site
 from xml.etree.ElementTree import tostring, parse
 
 # ENIGMA IMPORTS
 from enigma import getDesktop, eTimer, eEPGCache, eServiceCenter, eServiceReference
+from Components.ConfigList import ConfigListScreen
 from Components.ActionMap import ActionMap
-from Components.config import config, ConfigText, ConfigYesNo, ConfigInteger, ConfigSelection, ConfigEnableDisable, ConfigSubsection, getConfigListEntry, ConfigIP, ConfigSubList, ConfigClock
-from Components.ConfigList import ConfigListScreen, ConfigList
-from Components.Label import Label
+from Components.config import config, ConfigText, ConfigYesNo, ConfigInteger, ConfigSelection, ConfigSubsection, getConfigListEntry, ConfigIP, ConfigSubList, ConfigClock
 from Components.Network import iNetwork
 from Components.Pixmap import Pixmap
 from Components.Renderer.Picon import getPiconName
+from Components.Sources.StaticText import StaticText
 from Screens.InfoBar import InfoBar
 from Plugins.Plugin import PluginDescriptor
 from Screens.MessageBox import MessageBox
@@ -55,11 +58,11 @@ from . import _  # for localized messages
 global WebTimer
 global WebTimer_conn
 global AutoStartTimer
-Servicelist = None
-epgexport_version = "1.5-r1"
-EXPORTPATH = resolveFilename(SCOPE_SYSETC, "epgexport")  # /etc/epgexport/
+SERVICELIST = None
+VERSION = "1.5-r8"
+EXPORTPATH = "%s%s" % (resolveFilename(SCOPE_SYSETC), "epgexport")  # /etc/epgexport
 CHANNELS = join(EXPORTPATH, "epgexport.channels")
-DESTINATION = {"volatile": "/tmp/epgexport", "data": "/data/epgexport", "hdd": "/media/hdd/epgexport", "usb": "/media/usb/epgexport", "sdcard": "/media/sdcard/epgexport"}
+DESTINATION = {"etc": EXPORTPATH, "volatile": "/tmp/epgexport", "data": "/data/epgexport", "hdd": "/media/hdd/epgexport", "usb": "/media/usb/epgexport", "sdcard": "/media/sdcard/epgexport"}
 
 config.plugins.epgexport = ConfigSubsection()
 compr_opt = []
@@ -70,22 +73,24 @@ config.plugins.epgexport.compression = ConfigSelection(default="xz", choices=com
 with open("/proc/mounts", "r") as f:
 	mounts = f.read()
 save_opt = []
-save_opt.append(("etc", EXPORTPATH))
-for dest in ["volatile", "/data", "/media/hdd", "/media/usb", "/media/sdcard"]:
+save_opt.append(("etc", DESTINATION.get("etc", None)))
+save_opt.append(("volatile", DESTINATION.get("volatile", None)))
+for dest in ["/data", "/media/hdd", "/media/usb", "/media/sdcard"]:
 	if mounts.find(dest) != -1:
 		key = dest[dest.rfind("/") + 1:]
 		value = DESTINATION.get(key, None)
 		if value:
 			save_opt.append((key, value))
+print("save_opt: %s" % str(save_opt))
 config.plugins.epgexport.epgexport = ConfigSelection(default="volatile", choices=save_opt)
 channel_opt = []
-channel_opt.append(("name", _("Channel") + " " + _("Name")))
-channel_opt.append(("names", _("Channel") + _("Name")))
-cname = _("Channel") + _("Name")
+channel_opt.append(("name", "%s %s" % (_("Channel"), _("Name"))))
+channel_opt.append(("names", "%s%s" % (_("Channel"), _("Name"))))
+cname = "%s%s" % (_("Channel"), _("Name"))
 channel_opt.append(("nameslow", cname.lower()))
-channel_opt.append(("nameslang", cname + "." + _("Language").lower()))
-channel_opt.append(("nameslowlang", cname.lower() + "." + _("Language").lower()))
-channel_opt.append(("number", _("Channel") + " " + _("Number")))
+channel_opt.append(("nameslang", "%s.%s" % (cname, _("Language").lower())))
+channel_opt.append(("nameslowlang", "%s.%s" % (cname.lower(), _("Language").lower())))
+channel_opt.append(("number", "%s %s" % (_("Channel"), _("Number"))))
 channel_opt.append(("xml", _("Custom (%s)") % "xml"))
 config.plugins.epgexport.channelid = ConfigSelection(default="name", choices=channel_opt)
 config.plugins.epgexport.twisted = ConfigYesNo(default=True)
@@ -103,7 +108,7 @@ reload_options.append(("0", _("always")))
 for hours in range(1, 25):
 	reload_options.append((str(hours), str(hours)))
 config.plugins.epgexport.reload = ConfigSelection(default="0", choices=reload_options)
-config.plugins.epgexport.daily = ConfigEnableDisable(default=False)
+config.plugins.epgexport.hours = ConfigSelection(default=0, choices=[("0", _("disabled")), ("1", _("every hour")), ("2", _("every 2 hours")), ("6", _("every 6 hours")), ("12", _("every 12 hours")), ("24", _("daily"))])
 config.plugins.epgexport.wakeup = ConfigClock(default=((6 * 60) + 45) * 60)
 outdated_options = []
 outdated_options.append(("0", _("none")))
@@ -114,7 +119,7 @@ bouquet_options = []
 enigma2 = resolveFilename(SCOPE_SYSETC, "enigma2")  # /etc/enigma2
 for bouquet in listdir(enigma2):
 	if bouquet.startswith("userbouquet.") and bouquet.endswith(".tv"):
-		with open(join(enigma2, bouquet), "r") as f:
+		with open(join(enigma2, bouquet), encoding="utf8", errors='ignore') as f:
 			name = f.readline()
 		name = name.replace("#NAME ", "").replace(" (TV)", "").rstrip()
 		bouquet_options.append((name.lower(), name))
@@ -177,22 +182,23 @@ def exportLastUpdate():
 
 
 def startEPGExport(session, **kwargs):
-	global Servicelist
-	servicelist = kwargs.get("servicelist", None)
-	if servicelist is None and InfoBar is not None:
+	global SERVICELIST
+	slist = kwargs.get("SERVICELIST", None)
+	if slist is None and InfoBar is not None:
 		InfoBarInstance = InfoBar.instance
 		if InfoBarInstance is not None:
-			servicelist = InfoBarInstance.servicelist
-	Servicelist = servicelist
+			slist = InfoBarInstance.servicelist
+	SERVICELIST = slist
 	session.open(EPGExportConfiguration)
 
 
-def cleanepgexport(keep=True):
-	for file in [join(EXPORTPATH, "LastUpdate.txt"), "%s.%s" % (CHANNELS, "xml"), "%s.%s" % (CHANNELS, "xml.gz"), "%s.%s" % (CHANNELS, "xml.xz"), join(EXPORTPATH, "epgexport.xml"), join(EXPORTPATH, "epgexport.xml.gz"), join(EXPORTPATH, "epgexport.xml.xz"), join(EXPORTPATH, "custom.channels.xml")]:
-		if exists(file):
-			remove(file)
-	if not keep and exists(EXPORTPATH):
-		rmdir(EXPORTPATH)
+def cleanepgexport(keep=False):
+	if keep:
+		for file in [join(EXPORTPATH, "LastUpdate.txt"), "%s.%s" % (CHANNELS, "xml"), "%s.%s" % (CHANNELS, "xml.gz"), "%s.%s" % (CHANNELS, "xml.xz"), join(EXPORTPATH, "epgexport.xml"), join(EXPORTPATH, "epgexport.xml.gz"), join(EXPORTPATH, "epgexport.xml.xz"), join(EXPORTPATH, "custom.channels.xml")]:
+			if exists(file):
+				remove(file)
+	elif exists(EXPORTPATH):
+		rmtree(EXPORTPATH)
 
 
 def fixepgexport():
@@ -201,23 +207,28 @@ def fixepgexport():
 		if islink(EXPORTPATH):
 			remove(EXPORTPATH)
 			mkdir(EXPORTPATH, mode=0o777)
+			cprint("old link '%s' removed, new directory '%s' created" % (EXPORTPATH, EXPORTPATH))
 		cprint("Exportpath is %s" % EXPORTPATH)
 	else:
-		select = DESTINATION.get(save_path, None)
-		if select:
-			if not islink(EXPORTPATH):
-				cleanepgexport()
-			if not exists(select):
-				mkdir(select, mode=0o777)
-			if not exists(EXPORTPATH):
-				symlink(select, EXPORTPATH)
+		dest = DESTINATION.get(save_path, None)
+		if dest:
+			if not exists(dest):
+				mkdir(dest, mode=0o777)
+			if exists(EXPORTPATH):  # it could be a directory or a link
+				if islink(EXPORTPATH):
+					if dest != readlink(EXPORTPATH):  # no longer valid?
+						remove(EXPORTPATH)
+						symlink(dest, EXPORTPATH)
+						cprint("old Link '%s' removed, new link '%s' for '%s' created" % (EXPORTPATH, EXPORTPATH, dest))
+				else:  # it's a directory
+					cleanepgexport()
+					symlink(dest, EXPORTPATH)
+					cprint("old directory '%s' removed, new link '%s' created" % (EXPORTPATH, EXPORTPATH))
 			else:
-				source = readlink(EXPORTPATH[: -1])
-				if source != select:
-					remove(EXPORTPATH)
-					symlink(select, EXPORTPATH)
-			cprint("Exportpath is %s" % select)
-		else:  # none
+				symlink(dest, EXPORTPATH)
+				cprint("nothing to remove, new link '%s' created" % EXPORTPATH)
+			cprint("Exportpath is %s" % dest)
+		else:
 			if islink(EXPORTPATH):
 				remove(EXPORTPATH)
 			else:
@@ -251,7 +262,7 @@ class EPGExportAutoStartTimer:  # class for Autostart of EPG Export
 		self.update()
 
 	def getWakeTime(self):
-		if config.plugins.epgexport.daily.value:
+		if int(config.plugins.epgexport.hours.value):
 			clock = config.plugins.epgexport.wakeup.value
 			nowt = time()
 			now = localtime(nowt)
@@ -266,7 +277,7 @@ class EPGExportAutoStartTimer:  # class for Autostart of EPG Export
 		now = int(time())
 		if wake > 0:
 			if wake < now + atLeast:
-				wake += 24 * 3600  # Tomorrow
+				wake += int(config.plugins.epgexport.hours.value) * 3600  # next in x hours
 			tnext = wake - now
 			self.EPGExportTimer.startLongTimer(tnext)
 			cprint("WakeUpTime now set to %d seconds (now=%d)" % (tnext, now))
@@ -322,9 +333,10 @@ def startingCustomEPGExternal():
 	root.putChild(b"epgexport.channels.xml", resourceChannels)
 	root.putChild(b"epgexport.channels.xml.gz", resourceChannels)
 	root.putChild(b"epgexport.channels.xml.xz", resourceChannels)
-	root.putChild(b"epgexport", resourcePrograms)
+	root.putChild(b"epgexport.xml", resourcePrograms)
 	root.putChild(b"epgexport.gz", resourcePrograms)
 	root.putChild(b"epgexport.xz", resourcePrograms)
+	root.putChild(b"picon", static.File("/picon"))
 	factory = Site(root)
 	port = int(config.plugins.epgexport.port.value)
 	listenTCP(port, factory)
@@ -339,47 +351,70 @@ def finishedCustomEPGExternal():
 
 
 def Plugins(**kwargs):
-	return [PluginDescriptor(name="EPG Export", description=_("Export EPG as XML"), where=PluginDescriptor.WHERE_PLUGINMENU, icon="epgexport.png", fnc=startEPGExport),
-			 PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False)]
+	return [
+		PluginDescriptor(name="EPG Export", description=_("Export EPG as XML"), where=PluginDescriptor.WHERE_PLUGINMENU, icon="epgexport.png", fnc=startEPGExport),
+		PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False)
+		]
 
 
 class EPGExportConfiguration(ConfigListScreen, Screen):
-	def __init__(self, session, args=0):
-		Screen.__init__(self, session)
-		self.session = session
-		self.skin = readSkin("EPGExportConfiguration")
-		self.list = []
-		ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
+	def __init__(self, session):
+		skin = readSkin("EPGExportConfiguration")
+		self.skin = skin
 		self.onChangedEntry = []  # explicit check on every entry
-		self["statustext"] = Label("")
+		Screen.__init__(self, session, skin)
+		ConfigListScreen.__init__(self, [])
+		self["config"].onSelectionChanged.append(self.selectionChanged)
+		self["headline"] = StaticText()
+		self["statustext"] = StaticText()
 		self["logo"] = Pixmap()
-		self["buttonred"] = Label(_("Exit"))
-		self["buttongreen"] = Label(_("Save"))
-		self["buttonyellow"] = Label("")
-		self["buttonblue"] = Label(_("Select") + " " + _("Bouquets"))
-		self["actions"] = ActionMap(
-				["SetupActions", "ColorActions", "ChannelSelectEPGActions", "InfobarTeletextActions"], {
-					"exit": self.cancel,
-					"cancel": self.cancel,
-					"red": self.cancel,
-					"green": self.save,
-					"yellow": self.yellow_key,
-					"blue": self.blue_key,
-					"showEPGList": self.about,
-					"startTeletext": self.getText})
-		self.createSetup()
-		self.onLayoutFinish.append(self.setWindowTitle)
+		self["buttonred"] = StaticText(_("Exit"))
+		self["buttongreen"] = StaticText(_("Save"))
+		ftypes = {"xz": "xz", "gz": "gz", "none": "xml"}
+		ftype = ftypes.get(config.plugins.epgexport.compression.value, "{Error}")
+		self["buttonyellow"] = StaticText("%s (%s)" % (_("Downloading"), ftype))
+		self["buttonblue"] = StaticText("%s %s" % (_("Select"), _("Bouquets")))
+		self["actions"] = ActionMap(["ChannelSelectEPGActions", "InfobarTeletextActions", "SetupActions", "ColorActions"], {
+			"exit": self.cancel,
+			"cancel": self.cancel,
+			"red": self.cancel,
+			"green": self.save,
+			"yellow": self.yellow_key,
+			"blue": self.blue_key,
+			"showEPGList": self.about,
+			"startTeletext": self.getText
+		})
+		self.refreshLayout()
+		self.onLayoutFinish.append(self.onLayoutFinished)
 
-	def setWindowTitle(self):
+	def onLayoutFinished(self):
+		self["headline"].setText(_("%s - ver. %s") % ("EPG Export", VERSION))
 		self["logo"].instance.setPixmapFromFile("%s/epgexport.png" % resolveFilename(SCOPE_PLUGINS, "Extensions/EPGExport"))
-		if config.plugins.epgexport.compression.value == "xz":
-			self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "xz"))
-		elif config.plugins.epgexport.compression.value == "gz":
-			self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "gz"))
-		else:
-			self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "xml"))
-		self.setTitle(_("%s plugin - ver. %s") % ("EPG Export", epgexport_version))
-		self.refreshLayout
+		self.refreshLayout()
+
+	def refreshLayout(self):
+		clist = []
+		clist.append(getConfigListEntry(_("Destination directory"), config.plugins.epgexport.epgexport))
+		clist.append(getConfigListEntry(_("EPG Download (Days)"), config.plugins.epgexport.days))
+		clist.append(getConfigListEntry(_("EPG Update (Hours)"), config.plugins.epgexport.reload))
+		clist.append(getConfigListEntry(_("Keep outdated EPG (Days)"), config.plugins.epgexport.outdated))
+		clist.append(getConfigListEntry(_("Recurring EPG Download"), config.plugins.epgexport.hours))
+		if int(config.plugins.epgexport.hours.value):
+			clist.append(getConfigListEntry(_("StartTime"), config.plugins.epgexport.wakeup))
+		clist.append(getConfigListEntry(_("Compression"), config.plugins.epgexport.compression))
+		clist.append(getConfigListEntry(_("Channel ID"), config.plugins.epgexport.channelid))
+		clist.append(getConfigListEntry(_("OpenWebIf Picon Location (XML-Source)"), config.plugins.epgexport.server))
+		if config.plugins.epgexport.server.value == "ip":
+			clist.append(getConfigListEntry(_("Server IP Address"), config.plugins.epgexport.ip))
+		if config.plugins.epgexport.server.value == "name":
+			clist.append(getConfigListEntry(_("Server Name"), config.plugins.epgexport.hostname))
+		clist.append(getConfigListEntry(_("Enable Plugin's own WebInterface (GUI restart required)"), config.plugins.epgexport.webinterface))
+		if config.plugins.epgexport.webinterface.value:
+			clist.append(getConfigListEntry(_("Server Port (4000-4999)"), config.plugins.epgexport.port))
+			clist.append(getConfigListEntry(_("Enable 'twisted'-mode for WebInterface (recommended)"), config.plugins.epgexport.twisted))
+			clist.append(("\n",))
+			clist.append((_("HINT: >>> Test Plugin's own WebInterface with 'BoxIP:Port/LastUpdate.txt' <<<"),))
+		self["config"].setList(clist)
 
 	def save(self):
 		epgexport_string = """<?xml version="1.0" encoding="latin-1"?>
@@ -395,7 +430,7 @@ class EPGExportConfiguration(ConfigListScreen, Screen):
 										</source>
 									</sourcecat>
 								</sources>"""
-		self["statustext"].setText(_("Saving") + " " + _("Configuration") + " " + _("..."))
+		self["statustext"].setText("%s %s %s" % (_("Saving"), _("Configuration"), _("...")))
 		if config.plugins.epgexport.channelid.value == "xml" and not exists(join(EXPORTPATH, "custom.channels.xml")):
 			config.plugins.epgexport.channelid.value = "name"
 		for x in self["config"].list:
@@ -423,54 +458,21 @@ class EPGExportConfiguration(ConfigListScreen, Screen):
 			with open(join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgload/epgexport.sources.xml"), "w+") as f:
 				f.write(epg_string)
 		else:
-			if exists(join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgimport/epgexport.sources.xml")):
-				remove(join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgimport/epgexport.sources.xml"))
-			if exists(join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgload/epgexport.sources.xml")):
-				remove(join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgload/epgexport.sources.xml"))
+			file = join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgimport/epgexport.sources.xml")
+			if exists(file):
+				remove(file)
+			file = join(resolveFilename(SCOPE_SYSETC, "epgexport"), "epgload/epgexport.sources.xml")
+			if exists(file):
+				remove(file)
 		fixepgexport()
 		self.close(True)
 
 	def cancel(self):
-		self["statustext"].setText(_("Leaving") + " " + _("Configuration") + " " + _("..."))
+		self["statustext"].setText("%s %s %s" % (_("Leaving"), _("Configuration"), _("...")))
 		for x in self["config"].list:
 			if len(x) > 1:
 				x[1].cancel()
 		self.close(False)
-
-	def createSetup(self):  # init only on first run
-		self.refreshLayout(True)
-
-	def refreshLayout(self, first=False):
-		self.list = []
-		self.list.append(getConfigListEntry(_("Destination directory"), config.plugins.epgexport.epgexport))
-		self.list.append(getConfigListEntry(_("EPG Download (Days)"), config.plugins.epgexport.days))
-		self.list.append(getConfigListEntry(_("EPG Update (Hours)"), config.plugins.epgexport.reload))
-		self.list.append(getConfigListEntry(_("Keep outdated EPG (Days)"), config.plugins.epgexport.outdated))
-		self.list.append(getConfigListEntry(_("Daily EPG Download"), config.plugins.epgexport.daily))
-		if config.plugins.epgexport.daily.value:
-			self.list.append(getConfigListEntry(_("Daily StartTime"), config.plugins.epgexport.wakeup))
-		self.list.append(getConfigListEntry(_("Compression"), config.plugins.epgexport.compression))
-		self.list.append(getConfigListEntry(_("Channel ID"), config.plugins.epgexport.channelid))
-		self.list.append(getConfigListEntry(_("OpenWebIf Picon Location (XML-Source)"), config.plugins.epgexport.server))
-		if config.plugins.epgexport.server.value == "ip":
-			self.list.append(getConfigListEntry(_("Server IP Address"), config.plugins.epgexport.ip))
-		if config.plugins.epgexport.server.value == "name":
-			self.list.append(getConfigListEntry(_("Server Name"), config.plugins.epgexport.hostname))
-		self.list.append(getConfigListEntry(_("Enable Plugin's own WebInterface (GUI restart required)"), config.plugins.epgexport.webinterface))
-		if config.plugins.epgexport.webinterface.value:
-			self.list.append(getConfigListEntry(_("Server Port (4000-4999)"), config.plugins.epgexport.port))
-			self.list.append(getConfigListEntry(_("Enable 'twisted'-mode for WebInterface (recommended)"), config.plugins.epgexport.twisted))
-			self.list.append((_("HINT: >>> Test Plugin's own WebInterface with 'BoxIP:Port/LastUpdate.txt' <<<"),))
-
-		if first:
-			self.menuList = ConfigList(self.list)
-			self.menuList.list = self.list
-			self.menuList.l.setList(self.list)
-			self["config"] = self.menuList
-			self["config"].onSelectionChanged.append(self.selectionChanged)
-		else:
-			self.menuList.list = self.list
-			self.menuList.l.setList(self.list)
 
 	def selectionChanged(self):
 		choice = self["config"].getCurrent()
@@ -482,12 +484,9 @@ class EPGExportConfiguration(ConfigListScreen, Screen):
 		elif current == hostname:
 			self["buttonyellow"].setText(_("Hostname"))
 		else:
-			if config.plugins.epgexport.compression.value == "xz":
-				self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "xz"))
-			elif config.plugins.epgexport.compression.value == "gz":
-				self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "gz"))
-			else:
-				self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), "xml"))
+			ftypes = {"xz": "xz", "gz": "gz", "none": "xml"}
+			ftype = ftypes.get(config.plugins.epgexport.compression.value, "{Error}")
+			self["buttonyellow"].setText("%s (%s)" % (_("Downloading"), ftype))
 
 	def changedEntry(self):
 		choice = self["config"].getCurrent()
@@ -495,7 +494,7 @@ class EPGExportConfiguration(ConfigListScreen, Screen):
 		hostname = config.plugins.epgexport.hostname
 		if config.plugins.epgexport.channelid.value == "xml" and not exists(join(EXPORTPATH, "custom.channels.xml")):
 			config.plugins.epgexport.channelid.value = "name"
-		if choice != None and current != hostname:
+		if choice is not None and current != hostname:
 			self.refreshLayout()
 
 	def yellow_key(self):
@@ -544,12 +543,12 @@ class EPGExportConfiguration(ConfigListScreen, Screen):
 		self.session.open(MessageBox, "%s %s %s:\n\n %s\n%s" % (_("EPG"), _("Downloading"), ctype, loaded.upper(), _("Execution finished!!")), MessageBox.TYPE_INFO, timeout=3)
 
 	def about(self):
-		self.session.open(MessageBox, _("%s plugin ver. %s\n\n(c) gutemine 2019\n\nSpecial Thanks to Rytec for the XMLTV Format !") % ("EPG Export", epgexport_version), MessageBox.TYPE_INFO)
+		self.session.open(MessageBox, _("%s plugin ver. %s\n\n(c) gutemine 2019\n\nSpecial Thanks to Rytec for the XMLTV Format !") % ("EPG Export", VERSION), MessageBox.TYPE_INFO)
 
 	def getText(self):
 		cprint("CLEANING EXPORT")
 		cleanepgexport(True)
-		self.session.open(MessageBox, _("EPG") + " " + _("Download") + " " + _("Cache") + " " + _("Reset"), MessageBox.TYPE_INFO)
+		self.session.open(MessageBox, "%s %s %s %s" % (_("EPG"), _("Download"), _("Cache"), _("Reset")), MessageBox.TYPE_INFO)
 
 	def getIP(self):
 		ip = None
@@ -582,12 +581,12 @@ class EPGExport(Screen):
 		self.time_epoch = int(config.plugins.epgexport.days.value) * 60 * 24
 		self.slist = None
 		self.tree = None
-		global Servicelist
-		if Servicelist is None:
+		global SERVICELIST
+		if SERVICELIST is None:
 			InfoBarInstance = InfoBar.instance
 			if InfoBarInstance is not None:
-				Servicelist = InfoBarInstance.servicelist
-		cprint("servicelist: %s" % Servicelist)
+				SERVICELIST = InfoBarInstance.servicelist
+		cprint("SERVICELIST: %s" % SERVICELIST)
 		new = checkLastUpdate()
 		if new:
 			if config.plugins.epgexport.channelid.value == "xml":
@@ -600,39 +599,40 @@ class EPGExport(Screen):
 				else:
 					cprint("custom.channels.xml not found")
 					if self.main is not None:
-						self.main["statustext"].setText(_("Custom (%s)") % ("xml" + " " + _("not found")))
+						self.main["statustext"].setText(_("Custom (%s)") % ("xml %s" % _("not found")))
 					return
 			cprint("extracting...")
 			self.startingEPGExport()
 		else:
 			cprint("still valid...")
 			if self.main is not None:
-				self.main["statustext"].setText(_("EPG") + " " + _("Download") + " " + _("Reload") + " " + _("Finished"))
+				self.main["statustext"].setText("%s %s %s %s" % (_("EPG"), _("Download"), _("Reload"), _("Finished")))
 
 	def startingEPGExport(self):
 		cprint("starting EPG export...")
-		global Servicelist
+		global SERVICELIST
 		lang = config.osd.language.value
 		sp = []
 		sp = lang.split("_")
 		self.language = sp[0].lower()
-		if Servicelist:  # use current bouquet if none is found...
-			bouquet = Servicelist.getRoot()
-			serviceHandler = eServiceCenter.getInstance()
-			info = serviceHandler.info(bouquet)
-			bouquet_name = info.getName(bouquet)
-			cprint("DEFAULT bouquet %s" % bouquet_name)
-			all_bouquets = Servicelist.getBouquetList()
-			self.services = []
-			for bouquets in all_bouquets:
-				bt = tuple(bouquets)
-				bouquet_name = bt[0].replace(" (TV)", "").replace(" (Radio)", "").lower()
-				cprint("CHECKS bouquet %s" % bouquet_name)
-				for x in range(bouquet_length):
-					if bouquet_name == config.plugins.epgexport.bouquets[x].name.value and config.plugins.epgexport.bouquets[x].export.value:
-						bouquet = bouquets[1]
-						cprint("FOUND bouquet %s" % bouquet_name)
-						self.services = self.services + self.getBouquetServices(bouquet)
+		if SERVICELIST:  # use current bouquet if none is found...
+			bouquet = SERVICELIST.getRoot()
+			if bouquet:
+				serviceHandler = eServiceCenter.getInstance()
+				info = serviceHandler.info(bouquet)
+				bouquet_name = info.getName(bouquet)
+				cprint("DEFAULT bouquet %s" % bouquet_name)
+				all_bouquets = SERVICELIST.getBouquetList()
+				self.services = []
+				for bouquets in all_bouquets:
+					bt = tuple(bouquets)
+					bouquet_name = bt[0].replace(" (TV)", "").replace(" (Radio)", "").lower()
+					cprint("CHECKS bouquet %s" % bouquet_name)
+					for x in range(bouquet_length):
+						if bouquet_name == config.plugins.epgexport.bouquets[x].name.value and config.plugins.epgexport.bouquets[x].export.value:
+							bouquet = bouquets[1]
+							cprint("FOUND bouquet %s" % bouquet_name)
+							self.services += self.getBouquetServices(bouquet)
 			if self.channels:
 				self.exportChannels()
 			if self.programs:
@@ -643,10 +643,10 @@ class EPGExport(Screen):
 
 	def getBouquetServices(self, bouquet):
 		services = []
-		Servicelist = eServiceCenter.getInstance().list(bouquet)
-		if Servicelist is not None:
+		SERVICELIST = eServiceCenter.getInstance().list(bouquet)
+		if SERVICELIST is not None:
 			while True:
-				service = Servicelist.getNext()
+				service = SERVICELIST.getNext()
 				if not service.valid():  # check if end of list
 					break
 				if service.flags & (eServiceReference.isDirectory | eServiceReference.isMarker):  # ignore non playable services
@@ -691,11 +691,11 @@ class EPGExport(Screen):
 		xmltv_string = self.generateChannels()
 		xml_file_name = "%s.%s" % (CHANNELS, "xml")
 		if self.compressed == "xz":
-			with lzmaopen(xml_file_name + ".xz", "wb") as f:
+			with lzmaopen("%s.xz" % xml_file_name, "wb") as f:
 				f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
 				f.write(xmltv_string)
 		elif self.compressed == "gz":
-			with gzipopen(xml_file_name + ".gz", "wb") as f:
+			with gzipopen("%s.gz" % xml_file_name, "wb") as f:
 				f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
 				f.write(xmltv_string)
 		else:
@@ -720,10 +720,10 @@ class EPGExport(Screen):
 				f.write(xmltv_string)
 
 	def indent(self, elem, level=0):
-		i = "\n" + level * "  "
+		i = "\n%s" % ("  " * level)
 		if len(elem):
 			if not elem.text or not elem.text.strip():
-				elem.text = i + "  "
+				elem.text = "%s  " % i
 			if not elem.tail or not elem.tail.strip():
 				elem.tail = i
 			for elem in elem:
@@ -749,7 +749,7 @@ class EPGExport(Screen):
 		service_ref = service.ref.toString()
 		service_num = self.channelNumber(service)
 		if self.tree is not None:  # fallback is nameslang
-			channel_id = service_id + "." + self.language
+			channel_id = "%s.%s" % (service_id, self.language)
 			for child in self.tree:
 				if child.text == service_ref and len(child.attrib["id"]) > 0:  # first find will win because good custom file has only one find
 					channel_id = child.attrib["id"]
@@ -757,11 +757,11 @@ class EPGExport(Screen):
 		elif config.plugins.epgexport.channelid.value == "names":
 			channel_id = service_id
 		elif config.plugins.epgexport.channelid.value == "nameslang":
-			channel_id = service_id + "." + self.language
+			channel_id = "%s.%s" % (service_id, self.language)
 		elif config.plugins.epgexport.channelid.value == "nameslow":
 			channel_id = service_id.lower()
 		elif config.plugins.epgexport.channelid.value == "nameslowlang":
-			channel_id = service_id.lower() + "." + self.language
+			channel_id = "%s.%s" % (service_id.lower(), self.language)
 		elif config.plugins.epgexport.channelid.value == "number" and service_num:
 			channel_id = str(service_num)
 		else:  # default = channel name
@@ -773,11 +773,8 @@ class EPGExport(Screen):
 		if config.plugins.epgexport.server.value != "none":
 			picon_file = getPiconName(service)
 			if picon_file:
-				if config.plugins.epgexport.server.value == "ip":
-					host = "%d.%d.%d.%d" % tuple(config.plugins.epgexport.ip.value)
-				else:
-					host = config.plugins.epgexport.hostname.value
-				picon_url = "http://" + host + ":80/picon/" + basename(picon_file)
+				host = "%d.%d.%d.%d" % tuple(config.plugins.epgexport.ip.value) if config.plugins.epgexport.server.value == "ip" else config.plugins.epgexport.hostname.value
+				picon_url = "http://%s/picon/%s" % (host, basename(picon_file))
 		return picon_url
 
 	def generateChannels(self):
@@ -804,7 +801,7 @@ class EPGExport(Screen):
 #       td = timedelta(minutes=int(tl.tm_isdst)*60) # summertime is not needed...
 #       cprint("summer time delta %s" % td)
 #       offset = datetime.fromtimestamp(ts) - datetime.utcfromtimestamp(ts) - td
-		offset = datetime.fromtimestamp(ts) - datetime.utcfromtimestamp(ts)
+		offset = datetime.fromtimestamp(ts, tz=timezone.utc) - datetime.fromtimestamp(ts, tz=timezone.utc)
 		delta = str(offset).rstrip("0").replace(":", "")  # make nice string form XMLTV local time offset...
 		if abs(int(delta)) < 1000:
 			local_offset = '+0%s' % delta if int(delta) > 0 else '-0%s' % delta
@@ -856,11 +853,11 @@ class EPGExport(Screen):
 						start_time = strftime('%Y%m%d%H%M00', localtime(start))
 						stop_time = strftime('%Y%m%d%H%M00', localtime(stop))
 						xmltv_program = etree.SubElement(root, 'programme')
-						xmltv_program.set('start', start_time + ' ' + local_time_offset)
-						xmltv_program.set('stop', stop_time + ' ' + local_time_offset)
+						xmltv_program.set('start', "%s %s" % (start_time, local_time_offset))
+						xmltv_program.set('stop', "%s %s" % (stop_time, local_time_offset))
 						xmltv_program.set('channel', service_id)
 						en += 1
-						if title != None:
+						if title is not None:
 							title_text = self.b2s(title).split('. ')
 							title = etree.SubElement(xmltv_program, 'title', lang=self.language)
 							title.text = self.b2s(title_text[0]).strip()
@@ -871,13 +868,13 @@ class EPGExport(Screen):
 								if len(title_text) > 1:
 									subtitle = etree.SubElement(xmltv_program, 'sub-title', lang=self.language)
 									subtitle.text = self.b2s(title_text[1]).strip()
-						if description != None and len(description) > 1:
+						if description is not None and len(description) > 1:
 							desc = etree.SubElement(xmltv_program, 'desc', lang=self.language)
 							desc.text = self.b2s(description)
 		cprint("event number: %d" % en)
 		self.indent(root)
 		if self.main is not None:  # etree.tostring has no pretty print to make indent in xml
-			self.main["statustext"].setText(_("EPG") + " " + _("Download") + " " + _("Channels") + ": %d " % cn + _("EPG") + " " + _("Info") + " " + _("Details") + ": %d" % en)
+			self.main["statustext"].setText("%s %s %s: %d %s %s %s: %d" % (_("EPG"), _("Download"), _("Channels"), cn, _("EPG"), _("Info"), _("Details"), en))
 		return etree.tostring(root, encoding='utf-8')
 
 	def b2s(self, s):  # converting data type 'bytes' to 'string'
@@ -970,27 +967,28 @@ class EPGExportPrograms(Resource):
 		return programs
 
 
-class EPGExportSelection(Screen, ConfigListScreen):
-	def __init__(self, session, args=0):
-		Screen.__init__(self, session)
+class EPGExportSelection(ConfigListScreen, Screen):
+	def __init__(self, session):
 		self.session = session
-		self.skin = readSkin("EPGExportSelection")
-		self.list = []
-		ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
+		skin = readSkin("EPGExportSelection")
+		self.skin = skin
+		Screen.__init__(self, session, skin)
 		self.onChangedEntry = []  # explicit check on every entry
+		ConfigListScreen.__init__(self, [])
+		self["headline"] = StaticText()
 		self["logo"] = Pixmap()
-		self["buttonred"] = Label(_("Exit"))
-		self["buttongreen"] = Label(_("Save"))
-		self["buttonyellow"] = Label(_("Reset"))
-		self["buttonblue"] = Label(_("About"))
-		self["actions"] = ActionMap(["SetupActions", "ColorActions"], {
-						"ok": self.save,
-						"exit": self.cancel,
-						"cancel": self.cancel,
-						"red": self.cancel,
-						"green": self.save,
-						"yellow": self.resetting,
-						"blue": self.about})
+		self["buttonred"] = StaticText(_("Exit"))
+		self["buttongreen"] = StaticText(_("Save"))
+		self["buttonyellow"] = StaticText(_("Reset"))
+		self["buttonblue"] = StaticText(_("About"))
+		self["actions"] = ActionMap(["SetupActions",
+									"ColorActions"], {"ok": self.save,
+													"exit": self.cancel,
+													"cancel": self.cancel,
+													"red": self.cancel,
+													"green": self.save,
+													"yellow": self.resetting,
+													"blue": self.about})
 		selected = 0
 		for x in range(bouquet_length):
 			if config.plugins.epgexport.bouquets[x].export.value:
@@ -998,11 +996,12 @@ class EPGExportSelection(Screen, ConfigListScreen):
 		if selected < 1:
 			self.resetting()
 		self.createSetup()
-		self.onShown.append(self.setWindowTitle)
+		self.onLayoutFinish.append(self.onLayoutFinished)
+#		self.onShown.append(self.onLayoutFinished)
 
-	def setWindowTitle(self):
+	def onLayoutFinished(self):
+		self["headline"].setText("%s %s" % (_("EPG Selection"), _("Bouquet")))
 		self["logo"].instance.setPixmapFromFile("%s/epgexport.png" % resolveFilename(SCOPE_PLUGINS, "Extensions/EPGExport"))
-		self.setTitle("%s %s" % (_("EPG Selection"), _("Bouquet")))
 
 	def save(self):
 		selected = 0
@@ -1023,16 +1022,15 @@ class EPGExportSelection(Screen, ConfigListScreen):
 		self.close(False)
 
 	def createSetup(self):
-		self.list = []
+		clist = []
 		for x in range(bouquet_length):
-			self.list.append(getConfigListEntry(bouquet_options[x][1], config.plugins.epgexport.bouquets[x].export))
-		self["config"].list = self.list
-		self["config"].l.setList(self.list)
+			clist.append(getConfigListEntry(bouquet_options[x][1], config.plugins.epgexport.bouquets[x].export))
+		self["config"].setList(clist)
 
 	def changedEntry(self):
 		choice = self["config"].getCurrent()
 		current = choice[1]
-		if choice != None:
+		if choice is not None:
 			self.createSetup()
 
 	def resetting(self):
@@ -1046,4 +1044,4 @@ class EPGExportSelection(Screen, ConfigListScreen):
 		self.createSetup()
 
 	def about(self):
-		self.session.open(MessageBox, _("%s plugin ver. %s\n\n(c) gutemine 2019\n\nSpecial Thanks to Rytec for the XMLTV Format !") % ("EPG Export", epgexport_version), MessageBox.TYPE_INFO)
+			self.session.open(MessageBox, _("%s plugin ver. %s\n\n(c) gutemine 2019\n\nSpecial Thanks to Rytec for the XMLTV Format !") % ("EPG Export", VERSION), MessageBox.TYPE_INFO)

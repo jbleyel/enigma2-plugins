@@ -30,11 +30,10 @@ class BonjourScreen(Screen):
 		self["menuList"].l.setFont(0, gFont("Regular", 20))
 		self["menuList"].l.setFont(1, gFont("Regular", 16))
 
-		self["actions"] = ActionMap(["OkCancelActions"],
-			{
-			 "ok": self._ok,
-			 "cancel": self._exit,
-			 }, -1)
+		self["actions"] = ActionMap(["OkCancelActions"], {
+			"ok": self._ok,
+			"cancel": self._exit,
+		}, -1)
 
 		self.onLayoutFinish.append(self.buildMenu)
 		self.onLayoutFinish.append(self.layoutFinished)
@@ -53,7 +52,7 @@ class BonjourScreen(Screen):
 	def buildMenu(self):
 		list = []
 		for key in sorted(self.files):
-			if self.files[key] != None:
+			if self.files[key] is not None:
 				list.append(self.__buildMenuEntry(self.services[self.files[key]]))
 
 		self["menuList"].l.setList(list)

@@ -195,7 +195,7 @@ class NetworkBrowser(Screen):
 		self.session.open(AutoMountManager, None, self.skin_path)
 
 	def keyYellow(self):
-		if (os_path.exists(self.cache_file) == True):
+		if (os_path.exists(self.cache_file) is True):
 			remove(self.cache_file)
 		self.startRun()
 
@@ -246,11 +246,17 @@ class NetworkBrowser(Screen):
 	def makeStrIP(self):
 		self.IP = iNetwork.getAdapterAttribute(self.iface, "ip")
 		self.netmask = iNetwork.getAdapterAttribute(self.iface, "netmask")
-		if self.IP and self.netmask and len(self.IP) == 4 and len(self.netmask) == 4 and sum(self.IP) and sum(self.netmask):
+		self.gateway = iNetwork.getAdapterAttribute(self.iface, "gateway")
+		if (
+			self.IP and self.netmask and self.gateway
+			and len(self.IP) == 4 and len(self.netmask) == 4 and len(self.gateway) == 4
+			and sum(self.IP) and sum(self.netmask) and sum(self.gateway)
+		):
 			strCIDR = str(sum((bin(x).count('1') for x in self.netmask)))
 			strIP = '.'.join((str(ip & mask) for ip, mask in zip(self.IP, self.netmask))) + "/" + strCIDR
-			return strIP
-		return None
+			strGateway = ".".join(map(str, self.gateway))
+			return strGateway, strIP
+		return None, None
 
 	def process_NetworkIPs(self):
 		self.inv_cache = 0
@@ -265,9 +271,9 @@ class NetworkBrowser(Screen):
 			print('[Networkbrowser] Getting fresh network list')
 			self.networklist = self.getNetworkIPs()
 			if fileExists("/usr/bin/nmap"):
-				strIP = self.makeStrIP()
-				if strIP:
-					self.Console.ePopen("nmap -oX - " + strIP + ' -sP 2>/dev/null', self.Stage1SettingsComplete)
+				strGateway, strIP = self.makeStrIP()
+				if strGateway and strIP:
+					self.Console.ePopen("nmap --dns-servers " + strGateway + " -oX - " + strIP + ' -sP 2>/dev/null', self.Stage1SettingsComplete)
 				else:
 					self.session.open(MessageBox, _("Your network interface %s is not properly configured, so a network scan cannot be done.\nPlease configure the interface and try again.") % self.iface, type=MessageBox.TYPE_ERROR)
 					self.setStatus('error')
@@ -287,8 +293,8 @@ class NetworkBrowser(Screen):
 
 	def getNetworkIPs(self):
 		nwlist = []
-		strIP = self.makeStrIP()
-		if strIP:
+		strGateway, strIP = self.makeStrIP()
+		if strGateway and strIP:
 			try:
 				nwlist = netscan.netzInfo(strIP)
 			except:
@@ -542,7 +548,7 @@ class NetworkBrowser(Screen):
 		sel = self["list"].getCurrent()
 		selectedhost = sel[0][2]
 		selectedhostname = sel[0][1]
-		if (ret == True):
+		if (ret is True):
 			self.session.openWithCallback(self.UserDialogClosed, UserDialog, self.skin_path, selectedhostname.strip())
 		else:
 			if sel[0][0] == 'host':  # host entry selected
@@ -607,11 +613,11 @@ class NetworkBrowser(Screen):
 			self.session.openWithCallback(self.MountEditClosed, AutoMountEdit, self.skin_path, data, newmount)
 
 	def MountEditClosed(self, returnValue=None):
-		if returnValue == None:
+		if returnValue is None:
 			self.updateNetworkList()
 
 
-class ScanIP(Screen, ConfigListScreen):
+class ScanIP(ConfigListScreen, Screen):
 	skin = """
 		<screen name="ScanIP" position="center,center" size="560,80" title="Scan IP" >
 			<ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" alphatest="on" />

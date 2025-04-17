@@ -25,7 +25,7 @@ def Plugins(**kwargs):
 	return PluginDescriptor(name="MovieRetitle", description=_("change name..."), where=PluginDescriptor.WHERE_MOVIELIST, fnc=main)
 
 
-class MovieRetitle(Screen, ConfigListScreen):
+class MovieRetitle(ConfigListScreen, Screen):
 	def __init__(self, session, service, parent, args=0):
 		Screen.__init__(self, session, parent=parent)
 		self.skinName = ["MovieRetitle", "Setup"]
@@ -55,7 +55,7 @@ class MovieRetitle(Screen, ConfigListScreen):
 		self.input_title = ConfigText(default=self.orig_title, fixed_size=False, visible_width=42)
 		self.input_descr = ConfigText(default=self.descr, fixed_size=False, visible_width=42)
 		tmp = config.movielist.videodirs.value
-		if not self.dir in tmp:
+		if self.dir not in tmp:
 			tmp.append(self.dir)
 		self.input_dir = ConfigSelection(choices=tmp, default=self.dir)
 
@@ -140,7 +140,7 @@ class MovieRetitle(Screen, ConfigListScreen):
 			self.session.openWithCallback(self.exitDialog, MessageBox, _("The target directory is not found. The file is not renamed."), MessageBox.TYPE_ERROR)
 
 	def confirmedReplace(self, answer):
-		if answer == True:
+		if answer is True:
 			self.moveMovieFiles(self.inter_fr, self.inter_to)
 
 	def moveMovieFiles(self, fr, to):

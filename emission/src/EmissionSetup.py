@@ -8,12 +8,12 @@ from Screens.Setup import SetupSummary
 # GUI (Components)
 from Components.ActionMap import ActionMap
 from Components.Sources.StaticText import StaticText
-
+from Components.Label import Label
 # Configuration
 from Components.config import config, getConfigListEntry
 
 
-class EmissionSetup(Screen, ConfigListScreen):
+class EmissionSetup(ConfigListScreen, Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["EmissionSetup", "Setup"]
@@ -21,7 +21,7 @@ class EmissionSetup(Screen, ConfigListScreen):
 		# Summary
 		self.setup_title = _("eMission settings")
 		self.onChangedEntry = []
-
+		self["footnote"] = Label()
 		ConfigListScreen.__init__(
 			self,
 			[

@@ -176,7 +176,7 @@ class fstabViewerScreen(Screen, HelpableScreen):
 		self.buildScreen()
 
 
-class fstabEditorScreen(Screen, ConfigListScreen, HelpableScreen):
+class fstabEditorScreen(ConfigListScreen, Screen, HelpableScreen):
 	skin = """
 		<screen position="center,center" size="600,380" title="fstab-Editor" >
 			<widget itemHeight="28" name="config" position="0,40" size="600,224" scrollbarMode="showOnDemand"/>
@@ -284,7 +284,7 @@ class fstabEditorScreen(Screen, ConfigListScreen, HelpableScreen):
 	def dirSelectDlgClosed(self, mountpoint):
 		#use print to see in crashlog what's been selected
 		print("mountpoint: ", mountpoint)
-		if mountpoint != False:
+		if mountpoint is not False:
 			if self.selectedEntry == 1:
 				self.mountpoint.value = mountpoint
 			elif self.selectedEntry == 0:

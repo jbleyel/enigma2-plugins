@@ -72,7 +72,7 @@ def timeSimilarityPercent(rtimer, evtBegin, evtEnd, timer=None):
 		# remove E2 offset
 		rtimerBegin = rtimer.begin + config.recording.margin_before.value * 60
 		rtimerEnd = rtimer.end - config.recording.margin_after.value * 60
-	#print("trimer [",rtimerBegin,",",rtimerEnd,"] (",rtimerEnd-rtimerBegin," s) after removing offsets")
+	#print("rtimer [",rtimerBegin,",",rtimerEnd,"] (",rtimerEnd-rtimerBegin," s) after removing offsets")
 	if (rtimerBegin <= evtBegin) and (evtEnd <= rtimerEnd):
 		commonTime = evtEnd - evtBegin
 	elif (evtBegin <= rtimerBegin) and (rtimerEnd <= evtEnd):
@@ -154,7 +154,8 @@ class AutoTimer:
 			# Parse Config
 			try:
 				configuration = cet_parse(XML_CONFIG).getroot()
-			except:
+			except Exception as error:
+				print("An exception occurred:", error)
 				try:
 					if os_path.exists(XML_CONFIG + "_old"):
 						os_rename(XML_CONFIG + "_old", XML_CONFIG + "_old(1)")
@@ -365,7 +366,7 @@ class AutoTimer:
 			except UnicodeDecodeError:
 				pass
 
-		self.isIPTV = bool([service for service in timer.services if ":http" in service])
+		self.isIPTV = bool([service for service in timer.services if "%3a//" in service])
 
 		# As well as description, also allow timers on individual IPTV streams
 		if timer.searchType == "description" or self.isIPTV:
@@ -530,7 +531,7 @@ class AutoTimer:
 # the programme).
 #
 				tdow = timestamp.tm_wday
-				if (timer.timespan[0] != None) and timer.timespan[2]:
+				if (timer.timespan[0] is not None) and timer.timespan[2]:
 					begin_offset = 60 * timestamp.tm_hour + timestamp.tm_min
 					timer_offset = 60 * timer.timespan[0][0] + timer.timespan[0][1]
 					if begin_offset < timer_offset:
@@ -557,14 +558,20 @@ class AutoTimer:
 				offsetEnd = timer.offset[1]
 			else:
 				# Apply E2 Offset
-				begin -= config.recording.margin_before.value * 60
-				end += config.recording.margin_after.value * 60
-				offsetBegin = config.recording.margin_before.value * 60
-				offsetEnd = config.recording.margin_after.value * 60
+				marginBefore = config.recording.margin_before.value * 60
+				marginAfter = config.recording.margin_after.value * 60
+				if timer.justplay and hasattr(config.recording, "zap_margin_before"):
+					marginBefore = config.recording.zap_margin_before.value * 60
+					marginAfter = config.recording.zap_margin_after.value * 60
+				begin -= marginBefore
+				end += marginAfter
+				offsetBegin = marginBefore
+				offsetEnd = marginAfter
 
 			# Overwrite endtime if requested
 			if timer.justplay and not timer.setEndtime:
 				end = begin
+				offsetEnd = 0
 
 			# Eventually change service to alternative
 			if timer.overrideAlternatives:
@@ -690,6 +697,7 @@ class AutoTimer:
 
 			newEntry.dirname = timer.destination
 			newEntry.justplay = timer.justplay
+			newEntry.hasEndTime = timer.setEndtime
 			newEntry.vpsplugin_enabled = timer.vps_enabled
 			newEntry.vpsplugin_overwrite = timer.vps_overwrite
 
@@ -806,7 +814,7 @@ class AutoTimer:
 
 	def JobMessage(self):
 		if self.callback is not None:
-			if self.simulateOnly == True:
+			if self.simulateOnly is True:
 				self.callback(self.autotimers, self.skipped)
 			else:
 				total = (self.new + self.modified + len(self.conflicting) + len(self.existing) + len(self.similars))

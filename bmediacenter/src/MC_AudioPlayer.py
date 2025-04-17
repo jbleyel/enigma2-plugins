@@ -199,7 +199,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 		self.standardInfoBar = False
 		self.ac3ON = False
 		try:
-			if config.av.downmix_ac3.value == False:
+			if config.av.downmix_ac3.value is False:
 				config.av.downmix_ac3.value = True
 				config.av.downmix_ac3.save()
 				self.ac3ON = True
@@ -254,7 +254,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 		self.filelist = []
 		self["filelist"] = []
 		inhibitDirs = ["/bin", "/boot", "/dev", "/dev.static", "/etc", "/lib", "/proc", "/ram", "/root", "/sbin", "/sys", "/tmp", "/usr", "/var"]
-		self.filelist = FileList(currDir, useServiceRef=True, showDirectories=True, showFiles=True, matchingPattern="(?i)^.*\.(mp2|mp3|wav|wave|wma|m4a|ogg|ra|flac|m3u|pls|e2pls)", additionalExtensions=None, sortDirs="0.0", sortFiles=config.plugins.mc_ap_sortmode.value, inhibitDirs=inhibitDirs)
+		self.filelist = FileList(currDir, useServiceRef=True, showDirectories=True, showFiles=True, matchingPattern=r"(?i)^.*\.(mp2|mp3|wav|wave|wma|m4a|ogg|ra|flac|m3u|pls|e2pls)", additionalExtensions=None, sortDirs="0.0", sortFiles=config.plugins.mc_ap_sortmode.value, inhibitDirs=inhibitDirs)
 		self["filelist"] = self.filelist
 		self["filelist"].show()
 		self.JpgTimer = eTimer()
@@ -384,7 +384,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 				self.PlayService()
 
 	def visibility(self, force=1):
-		if self.isVisible == True:
+		if self.isVisible is True:
 			self.isVisible = False
 			self.hide()
 		else:
@@ -438,7 +438,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 		#self["coverArt"].updateCoverArt(path)
 
 	def StopPlayback(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.show()
 			self.isVisible = True
 		if self.session.nav.getCurrentService() is None:
@@ -495,7 +495,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 			return
 		filelist = FileList(directory, useServiceRef=True, showMountpoints=False, isTop=True)
 		for x in filelist.getFileList():
-			if x[0][1] == True:  # isDir
+			if x[0][1] is True:  # isDir
 				#if recursive:
 				#	if x[0][0] != directory:
 				#		self.playlist.addFile(x[0][1])
@@ -635,7 +635,7 @@ class MC_AudioPlayer(Screen, HelpableScreen, InfoBarSeek):
 		self.session.openWithCallback(self.updd, AudioPlayerSettings)
 
 	def Exit(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.visibility()
 			return
 		if self.filelist.getCurrentDirectory() is None:
@@ -677,7 +677,7 @@ class MC_WebRadio(Screen, HelpableScreen):
 		self["fileinfo"] = Label()
 		self.ac3ON = False
 		try:
-			if config.av.downmix_ac3.value == False:
+			if config.av.downmix_ac3.value is False:
 				config.av.downmix_ac3.value = True
 				config.av.downmix_ac3.save()
 				self.ac3ON = True
@@ -723,7 +723,7 @@ class MC_WebRadio(Screen, HelpableScreen):
 		self.filelist = []
 		self["filelist"] = []
 		inhibitDirs = ["/bin", "/boot", "/dev", "/dev.static", "/etc", "/lib", "/proc", "/ram", "/root", "/sbin", "/sys", "/tmp", "/usr", "/var"]
-		self.filelist = FileList(currDir, useServiceRef=True, showDirectories=False, showFiles=True, matchingPattern="(?i)^.*\.(m3u|pls|e2pls)", additionalExtensions="4098:m3u 4098:e2pls 4098:pls")
+		self.filelist = FileList(currDir, useServiceRef=True, showDirectories=False, showFiles=True, matchingPattern=r"(?i)^.*\.(m3u|pls|e2pls)", additionalExtensions="4098:m3u 4098:e2pls 4098:pls")
 
 		self["filelist"] = self.filelist
 		self["filelist"].show()
@@ -795,7 +795,7 @@ class MC_WebRadio(Screen, HelpableScreen):
 			self.KeyOK()
 
 	def visibility(self, force=1):
-		if self.isVisible == True:
+		if self.isVisible is True:
 			self.isVisible = False
 			self.hide()
 		else:
@@ -832,7 +832,7 @@ class MC_WebRadio(Screen, HelpableScreen):
 		self.playlist.clear()
 
 	def StopPlayback(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.show()
 			self.isVisible = True
 		if self.session.nav.getCurrentService() is None:
@@ -923,7 +923,7 @@ class MC_WebRadio(Screen, HelpableScreen):
 		self.session.openWithCallback(self.updd, AudioPlayerSettings)
 
 	def Exit(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.visibility()
 			return
 		self.FileInfoTimer.stop()
@@ -1077,7 +1077,7 @@ class MC_WebDown(Screen):
 	def okbuttonClick(self):
 		selection = self["menu"].getCurrent()
 		if selection is not None:
-			fn = sub("[^a-zA-Z0-9\n\.]", "_", selection[0])
+			fn = sub("[^a-zA-Z0-9\n\\.]", "_", selection[0])
 			with open(mcpath + "radio/" + fn + ".m3u", "w") as f:
 				f.write(selection[1])
 			if fileExists("/tmp/pl.m3u"):
@@ -1141,7 +1141,6 @@ class MC_AudioPlaylist(Screen, InfoBarSeek):
 				"next": (self.KeyNext, "Next song"),
 				"previous": (self.KeyPrevious, "Previous song"),
 				"playpause": (self.PlayPause, "Play / Pause"),
-				"stop": (self.StopPlayback, "Stop"),
 			}, -2)
 		self.JpgTimer = eTimer()
 		self.JpgTimer.callback.append(self.showBackgroundJPG)
@@ -1242,7 +1241,7 @@ class MC_AudioPlaylist(Screen, InfoBarSeek):
 	#	self["coverArt"].updateCoverArt(path)
 
 	def StopPlayback(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.show()
 			self.isVisible = True
 		if self.session.nav.getCurrentService() is None:
@@ -1256,7 +1255,7 @@ class MC_AudioPlaylist(Screen, InfoBarSeek):
 				self["screensaver"].showDefaultCover()
 
 	def visibility(self, force=1):
-		if self.isVisible == True:
+		if self.isVisible is True:
 			self.isVisible = False
 			self.hide()
 		else:
@@ -1578,7 +1577,7 @@ class MediaPixmap(Pixmap):
 
 	def paintCoverArtPixmapCB(self, picInfo=None):
 		ptr = self.picload.getData()
-		if ptr != None:
+		if ptr is not None:
 			self.instance.setPixmap(ptr.__deref__())
 
 	def updateCoverArt(self, path):

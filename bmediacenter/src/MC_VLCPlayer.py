@@ -58,19 +58,18 @@ class MC_VLCServerlist(Screen):
 		self["key_yellow"] = Button("Edit Server")
 		self["key_blue"] = Button("Play DVD")
 
-		self["actions"] = ActionMap(["WizardActions", "MenuActions", "ShortcutActions", "MoviePlayerActions"],
-			{
-			 "back": self.Exit,
-			 "red": self.keyDelete,
-			 "green": self.keyAddServer,
-			 "yellow": self.keyEditServer,
-			 "blue": self.keyDVD,
-			 "up": self.up,
-			 "down": self.down,
-			 "left": self.left,
-			 "right": self.right,
-			 "ok": self.ok
-			 }, -1)
+		self["actions"] = ActionMap(["WizardActions", "MenuActions", "ShortcutActions", "MoviePlayerActions"], {
+			"back": self.Exit,
+			"red": self.keyDelete,
+			"green": self.keyAddServer,
+			"yellow": self.keyEditServer,
+			"blue": self.keyDVD,
+			"up": self.up,
+			"down": self.down,
+			"left": self.left,
+			"right": self.right,
+			"ok": self.ok
+		}, -1)
 
 		self.onLayoutFinish.append(self.updateServerlist)
 
@@ -138,7 +137,7 @@ class MC_VLCServerlist(Screen):
 			self.session.open(MC_VLCMedialist, self.serverlist.getSelection()).update()
 
 	def Exit(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.visibility()
 			return
 
@@ -159,7 +158,7 @@ class MC_VLCMedialist(Screen):
 		self.filelistlabel = "Filelist:" + self.server.getBasedir()
 		self.playlistlabel = "Playlist"
 
-		self.defaultFilter = "(?i)\.(avi|mpeg|mpg|divx|flac|ogg|xvid|mp3|mp4|mov|ts|vob|wmv|mkv|iso|bin|m3u|pls|dat|xspf)$"
+		self.defaultFilter = r"(?i)\.(avi|mpeg|mpg|divx|flac|ogg|xvid|mp3|mp4|mov|ts|vob|wmv|mkv|iso|bin|m3u|pls|dat|xspf)$"
 
 		#self.filelist = VlcFileList(server, self.defaultFilter)
 		self.filelist = VlcFileList(self.getFilesAndDirsCB, server.getBasedir(), self.defaultFilter)
@@ -187,24 +186,23 @@ class MC_VLCMedialist(Screen):
 				iPlayableService.evStopped: self.StopPlayback
 			})
 
-		self["actions"] = ActionMap(["WizardActions", "InfobarActions", "MenuActions", "ShortcutActions", "MoviePlayerActions", "EPGSelectActions"],
-			{
-			 "back": self.Exit,
-			 "red": self.JumpToFavs,
-			 "green": self.showPreview,
-			 "yellow": self.update,
-			 "blue": self.keyFilter,
-			 "up": self.up,
-			 "down": self.down,
-			 "left": self.left,
-			 "right": self.right,
-			 "ok": self.ok,
-			 "menu": self.KeyMenu,
-			 "nextBouquet": self.NextFavFolder,
-			 "prevBouquet": self.PrevFavFolder,
-			 "showMovies": self.visibility,
-			 "leavePlayer": self.StopPlayback
-			 }, -1)
+		self["actions"] = ActionMap(["WizardActions", "InfobarActions", "MenuActions", "ShortcutActions", "MoviePlayerActions", "EPGSelectActions"], {
+			"back": self.Exit,
+			"red": self.JumpToFavs,
+			"green": self.showPreview,
+			"yellow": self.update,
+			"blue": self.keyFilter,
+			"up": self.up,
+			"down": self.down,
+			"left": self.left,
+			"right": self.right,
+			"ok": self.ok,
+			"menu": self.KeyMenu,
+			"nextBouquet": self.NextFavFolder,
+			"prevBouquet": self.PrevFavFolder,
+			"showMovies": self.visibility,
+			"leavePlayer": self.StopPlayback
+		}, -1)
 
 		self.currentList = None
 		self.playlistIds = []
@@ -449,7 +447,7 @@ class MC_VLCMedialist(Screen):
 			self.session.open(MessageBox, _("Error switching directory:\n%s" % (e)), MessageBox.TYPE_ERROR)
 
 	def visibility(self, force=1):
-		if self.isVisible == True:
+		if self.isVisible is True:
 			self.isVisible = False
 			self.hide()
 		else:
@@ -461,12 +459,12 @@ class MC_VLCMedialist(Screen):
 		self.session.nav.stopService()
 		self["currentmedia"].setText("")
 
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.show()
 			self.isVisible = True
 
 	def Exit(self):
-		if self.isVisible == False:
+		if self.isVisible is False:
 			self.visibility()
 			return
 
@@ -587,7 +585,7 @@ class MC_VLCFavoriteFolders(Screen):
 #------------------------------------------------------------------------------------------
 
 
-class FavoriteFolderAdd(Screen, ConfigListScreen):
+class FavoriteFolderAdd(ConfigListScreen, Screen):
 	skin = """
 		<screen position="160,220" size="400,120" title="Media Center - Add VLC Favorite" >
 			<widget name="config" position="10,10" size="380,100" />
@@ -632,7 +630,7 @@ class FavoriteFolderAdd(Screen, ConfigListScreen):
 #------------------------------------------------------------------------------------------
 
 
-class FavoriteFolderEdit(Screen, ConfigListScreen):
+class FavoriteFolderEdit(ConfigListScreen, Screen):
 	skin = """
 		<screen position="160,220" size="400,120" title="Media Center - Edit VLC Favorite" >
 			<widget name="config" position="10,10" size="380,100" />

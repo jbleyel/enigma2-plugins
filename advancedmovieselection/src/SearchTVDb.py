@@ -559,7 +559,7 @@ class TheTVDBMain(Screen, InfoLoadChoice):
 
     def paintBannerPixmapCB(self, picInfo=None):
         ptr = self.picload2.getData()
-        if ptr != None:
+        if ptr is not None:
             self['banner'].instance.setPixmap(ptr)
             self['banner'].show()
 
@@ -577,11 +577,11 @@ class TheTVDBMain(Screen, InfoLoadChoice):
 
     def paintPosterPixmapCB(self, picInfo=None):
         ptr = self.picload.getData()
-        if ptr != None:
+        if ptr is not None:
             self['cover'].instance.setPixmap(ptr)
             self['cover'].show()
 
-    @ staticmethod
+    @staticmethod
     def convert_time(time_string):
         """Convert a thetvdb time string into a datetime.time object."""
         time_res = [re.compile('\\D*(?P<hour>\\d{1,2})(?::(?P<minute>\\d{2}))?.*(?P<ampm>a|p)m.*', re.IGNORECASE), re.compile('\\D*(?P<hour>\\d{1,2}):?(?P<minute>\\d{2}).*')]
@@ -602,7 +602,7 @@ class TheTVDBMain(Screen, InfoLoadChoice):
                 if 'hour' in gd and 'minute' in gd:
                     return datetime.time(int(gd['hour']), int(gd['minute']))
 
-    @ staticmethod
+    @staticmethod
     def convert_date(date_string):
         """Convert a thetvdb date string into a datetime.date object."""
         first_aired = None
@@ -613,7 +613,7 @@ class TheTVDBMain(Screen, InfoLoadChoice):
 
         return first_aired
 
-    @ staticmethod
+    @staticmethod
     def htmlToFile(address):
         if address:
             return temp_dir + address.split('/')[-1]

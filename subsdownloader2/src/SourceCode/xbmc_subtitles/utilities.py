@@ -70,14 +70,14 @@ def hashFile(filename):
 
 def regex_tvshow(compare, file, sub=""):
     regex_expressions = ['[Ss]([0-9]+)[][._-]*[Ee]([0-9]+)([^\\\\/]*)$',
-                        '[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)',                     # foo.1x09
-                        '[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',          # foo.109
-                        '([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',
+                        r'[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)',                     # foo.1x09
+                        r'[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',          # foo.109
+                        r'([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',
                         '[\\\\/\\._ -]([0-9]+)([0-9][0-9])[^\\/]*',
                         'Season ([0-9]+) - Episode ([0-9]+)[^\\/]*',
                         '[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*',
-                        '[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)',                 #foo_[s01]_[e01]
-                        '[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)',        #foo, s01e01, foo.s01.e01, foo.s01-e01
+                        r'[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)',                 #foo_[s01]_[e01]
+                        r'[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)',        #foo, s01e01, foo.s01.e01, foo.s01-e01
                         '[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$',
                         '[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$'
                         ]
@@ -119,7 +119,7 @@ def regex_tvshow(compare, file, sub=""):
 """
 def toOpenSubtitles_two( id ):
   languages = {
-  	"None"                       : "none",
+    "None"                       : "none",
     "Albanian"                   : "sq",
     "Arabic"                     : "ar",
     "Belarusian"                 : "hy",
@@ -294,7 +294,7 @@ def twotoone(id):
 
 def toOpenSubtitlesId( id ):
   languages = {
-  	"None"                : "none",
+    "None"                : "none",
     "Albanian"            : "alb",
     "Arabic"              : "ara",
     "Belarusian"          : "arm",
@@ -408,7 +408,7 @@ def toScriptLang(id):
 
 def toSublightLanguage(id):
   languages = {
-  	"0"                   : "None",
+    "0"                   : "None",
     "alb"                 : "Albanian",
     "ara"                 : "Arabic",
     "arm"                 : "Belarusian",

@@ -263,7 +263,7 @@ class ExtendedEventDescriptor(Descriptor):
         descriptor.append(descr)
         return descr.descriptor_length + 2
 
-    @ staticmethod
+    @staticmethod
     def encode(data, item_description, language_code='DEU'):
         if language_code == 'rus':
             text = item_description.encode('iso8859_5', 'ignore')
@@ -305,7 +305,7 @@ class ComponentDescriptor:
         self.text = text.encode('cp1252', 'ignore')
         self.descriptor_length = 6 + len(self.text)
 
-    @ staticmethod
+    @staticmethod
     def decode(data, descriptor):
         descr = ComponentDescriptor('')
         descr.tag = ord(data[0])
@@ -319,7 +319,7 @@ class ComponentDescriptor:
         descriptor.append(descr)
         return descr.descriptor_length + 2
 
-    @ staticmethod
+    @staticmethod
     def encode(data, text, language_code='DEU'):
         descr = ComponentDescriptor(text, language_code)
         data.append(pack('B', descr.tag))
@@ -440,7 +440,7 @@ def createEIT(file_name, title, overwrite_jpg=False, overwrite_eit=False, movie=
             f_name = file_name
         eit_file = f_name + '.eit'
         jpg_file = f_name + '.jpg'
-        if movie == None:
+        if movie is None:
             tmdb3 = tmdb.init_tmdb3()
             results = tmdb3.searchMovie(title)
             if len(results) == 0:
@@ -465,7 +465,7 @@ def createEIT(file_name, title, overwrite_jpg=False, overwrite_eit=False, movie=
         genre = ' '.join(genre)
         appendShortDescriptionToMeta(file_name, genre)
         setTmdbCertificationtion(movie, file_name)
-        if os.path.exists(jpg_file) and overwrite_jpg == False and os.path.exists(eit_file) and overwrite_eit == False:
+        if os.path.exists(jpg_file) and overwrite_jpg is False and os.path.exists(eit_file) and overwrite_eit is False:
             print("Info's already exists, download skipped!")
             return True
         if name:
@@ -475,7 +475,7 @@ def createEIT(file_name, title, overwrite_jpg=False, overwrite_eit=False, movie=
             print('No Cover found for %s\n' % str(title))
         else:
             downloadCover(cover_url, jpg_file, overwrite_jpg)
-        if os.path.exists(eit_file) and overwrite_eit == False:
+        if os.path.exists(eit_file) and overwrite_eit is False:
             print("File '%s' already exists, eit creation skipped!" % eit_file)
             return True
         if not name or len(name) == 0:
@@ -552,10 +552,10 @@ def createEITtvdb(file_name, title, cover_type='poster', overwrite_jpg=False, ov
             f_name = file_name
         eit_file = f_name + '.eit'
         jpg_file = f_name + '.jpg'
-        if os.path.exists(jpg_file) and overwrite_jpg == False and os.path.exists(eit_file) and overwrite_eit == False:
+        if os.path.exists(jpg_file) and overwrite_jpg is False and os.path.exists(eit_file) and overwrite_eit is False:
             print("Info's already exists, download skipped!")
             return True
-        if serie == None and title:
+        if serie is None and title:
             print('Fetching info for movie: ' + str(title))
             results = tvdb.search(title)
             if len(results) == 0:
@@ -569,7 +569,7 @@ def createEITtvdb(file_name, title, cover_type='poster', overwrite_jpg=False, ov
             print('No Cover found for %s\n' % str(title))
         else:
             downloadCover(cover_url, jpg_file, overwrite_jpg)
-        if os.path.exists(eit_file) and overwrite_eit == False:
+        if os.path.exists(eit_file) and overwrite_eit is False:
             print("File '%s' already exists, eit creation skipped!" % eit_file)
             return True
         name = serie['SeriesName']
@@ -744,7 +744,7 @@ def detectDVDStructure(loadPath):
 class eServiceReference:
 
     def __init__(self, dummy_self, _file=None):
-        if _file == None:
+        if _file is None:
             _file = dummy_self
         self.file = str(_file).split('4097:0:0:0:0:0:0:0:0:0:')[1]
         self.name = os.path.basename(self.file).rsplit('.')[0]

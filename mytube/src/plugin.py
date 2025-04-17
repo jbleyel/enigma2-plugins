@@ -42,103 +42,96 @@ config.plugins.mytube.search = ConfigSubsection()
 
 
 config.plugins.mytube.search.searchTerm = ConfigTextWithGoogleSuggestions("", False)
-config.plugins.mytube.search.orderBy = ConfigSelection(
-				[
-				 ("relevance", _("Relevance")),
-				 ("viewCount", _("View Count")),
-				 ("published", _("Published")),
-				 ("rating", _("Rating"))
-				], "relevance")
-config.plugins.mytube.search.time = ConfigSelection(
-				[
-				 ("all_time", _("All Time")),
-				 ("this_month", _("This Month")),
-				 ("this_week", _("This Week")),
-				 ("today", _("Today"))
-				], "all_time")
-config.plugins.mytube.search.racy = ConfigSelection(
-				[
-				 ("include", _("Yes")),
-				 ("exclude", _("No"))
-				], "include")
-config.plugins.mytube.search.categories = ConfigSelection(
-				[
-				 (None, _("All")),
-				 ("Film", _("Film & Animation")),
-				 ("Autos", _("Autos & Vehicles")),
-				 ("Music", _("Music")),
-				 ("Animals", _("Pets & Animals")),
-				 ("Sports", _("Sports")),
-				 ("Travel", _("Travel & Events")),
-				 ("Shortmov", _("Short Movies")),
-				 ("Games", _("Gaming")),
-				 ("Comedy", _("Comedy")),
-				 ("People", _("People & Blogs")),
-				 ("News", _("News & Politics")),
-				 ("Entertainment", _("Entertainment")),
-				 ("Education", _("Education")),
-				 ("Howto", _("Howto & Style")),
-				 ("Nonprofit", _("Nonprofits & Activism")),
-				 ("Tech", _("Science & Technology"))
-				], None)
-config.plugins.mytube.search.lr = ConfigSelection(
-				[
-				 (None, _("All")),
-				 ("au", _("Australia")),
-				 ("br", _("Brazil")),
-				 ("ca", _("Canada")),
-				 ("cz", _("Czech Republic")),
-				 ("fr", _("France")),
-				 ("de", _("Germany")),
-				 ("gb", _("Great Britain")),
-				 ("au", _("Australia")),
-				 ("nl", _("Holland")),
-				 ("hk", _("Hong Kong")),
-				 ("in", _("India")),
-				 ("ie", _("Ireland")),
-				 ("il", _("Israel")),
-				 ("it", _("Italy")),
-				 ("jp", _("Japan")),
-				 ("mx", _("Mexico")),
-				 ("nz", _("New Zealand")),
-				 ("pl", _("Poland")),
-				 ("ru", _("Russia")),
-				 ("kr", _("South Korea")),
-				 ("es", _("Spain")),
-				 ("se", _("Sweden")),
-				 ("tw", _("Taiwan")),
-				 ("us", _("United States"))
-				], None)
-config.plugins.mytube.search.sortOrder = ConfigSelection(
-				[
-				 ("ascending", _("Ascending")),
-				 ("descending", _("Descending"))
-				], "ascending")
+config.plugins.mytube.search.orderBy = ConfigSelection([
+	("relevance", _("Relevance")),
+	("viewCount", _("View Count")),
+	("published", _("Published")),
+	("rating", _("Rating"))
+], "relevance")
+config.plugins.mytube.search.time = ConfigSelection([
+	("all_time", _("All Time")),
+	("this_month", _("This Month")),
+	("this_week", _("This Week")),
+	("today", _("Today"))
+], "all_time")
+config.plugins.mytube.search.racy = ConfigSelection([
+	("include", _("Yes")),
+	("exclude", _("No"))
+], "include")
+config.plugins.mytube.search.categories = ConfigSelection([
+	(None, _("All")),
+	("Film", _("Film & Animation")),
+	("Autos", _("Autos & Vehicles")),
+	("Music", _("Music")),
+	("Animals", _("Pets & Animals")),
+	("Sports", _("Sports")),
+	("Travel", _("Travel & Events")),
+	("Shortmov", _("Short Movies")),
+	("Games", _("Gaming")),
+	("Comedy", _("Comedy")),
+	("People", _("People & Blogs")),
+	("News", _("News & Politics")),
+	("Entertainment", _("Entertainment")),
+	("Education", _("Education")),
+	("Howto", _("Howto & Style")),
+	("Nonprofit", _("Nonprofits & Activism")),
+	("Tech", _("Science & Technology"))
+], None)
+config.plugins.mytube.search.lr = ConfigSelection([
+	(None, _("All")),
+	("au", _("Australia")),
+	("br", _("Brazil")),
+	("ca", _("Canada")),
+	("cz", _("Czech Republic")),
+	("fr", _("France")),
+	("de", _("Germany")),
+	("gb", _("Great Britain")),
+	("au", _("Australia")),
+	("nl", _("Holland")),
+	("hk", _("Hong Kong")),
+	("in", _("India")),
+	("ie", _("Ireland")),
+	("il", _("Israel")),
+	("it", _("Italy")),
+	("jp", _("Japan")),
+	("mx", _("Mexico")),
+	("nz", _("New Zealand")),
+	("pl", _("Poland")),
+	("ru", _("Russia")),
+	("kr", _("South Korea")),
+	("es", _("Spain")),
+	("se", _("Sweden")),
+	("tw", _("Taiwan")),
+	("us", _("United States"))
+], None)
+config.plugins.mytube.search.sortOrder = ConfigSelection([
+	("ascending", _("Ascending")),
+	("descending", _("Descending"))
+], "ascending")
 
 config.plugins.mytube.general = ConfigSubsection()
 config.plugins.mytube.general.showHelpOnOpen = ConfigYesNo(default=True)
 config.plugins.mytube.general.loadFeedOnOpen = ConfigYesNo(default=True)
-config.plugins.mytube.general.startFeed = ConfigSelection(
-				[
-				 ("hd", _("HD videos")),
-				 ("most_viewed", _("Most viewed")),
-				 ("top_rated", _("Top rated")),
-				 ("recently_featured", _("Recently featured")),
-				 ("most_discussed", _("Most discussed")),
-				 ("top_favorites", _("Top favorites")),
-				 ("most_linked", _("Most linked")),
-				 ("most_responded", _("Most responded")),
-				 ("most_recent", _("Most recent")),
-				 ("most_popular", _("Most popular")),
-				 ("most_shared", _("Most shared")),
-				 ("on_the_web", _("Trending videos")),
-				 ("my_subscriptions", _("My Subscriptions")),
-				 ("my_favorites", _("My Favorites")),
-				 ("my_history", _("My History")),
-				 ("my_watch_later", _("My Watch Later")),
-				 ("my_recommendations", _("My Recommendations")),
-				 ("my_uploads", _("My Uploads")),
-				], "top_rated")
+config.plugins.mytube.general.startFeed = ConfigSelection([
+	("hd", _("HD videos")),
+	("most_viewed", _("Most viewed")),
+	("top_rated", _("Top rated")),
+	("recently_featured", _("Recently featured")),
+	("most_discussed", _("Most discussed")),
+	("top_favorites", _("Top favorites")),
+	("most_linked", _("Most linked")),
+	("most_responded", _("Most responded")),
+	("most_recent", _("Most recent")),
+	("most_popular", _("Most popular")),
+	("most_shared", _("Most shared")),
+	("on_the_web", _("Trending videos")),
+	("my_subscriptions", _("My Subscriptions")),
+	("my_favorites", _("My Favorites")),
+	("my_history", _("My History")),
+	("my_watch_later", _("My Watch Later")),
+	("my_recommendations", _("My Recommendations")),
+	("my_uploads", _("My Uploads")),
+], "top_rated")
 config.plugins.mytube.general.on_movie_stop = ConfigSelection(default="ask", choices=[
 	("ask", _("Ask user")), ("quit", _("Return to movie list")), ("playnext", _("Play next video")), ("playagain", _("Play video again"))])
 
@@ -198,7 +191,7 @@ class downloadTask(Task):
 			Task.processFinished(self, 1)
 
 
-class MyTubePlayerMainScreen(Screen, ConfigListScreen):
+class MyTubePlayerMainScreen(ConfigListScreen, Screen):
 	BASE_STD_FEEDURL = "http://gdata.youtube.com/feeds/api/standardfeeds/"
 	Details = {}
 	#(entry, Title, Description, TubeID, thumbnail, PublishedDate,Views,duration,ratings )
@@ -493,7 +486,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 				self['feedlist'].setList(self.statuslist)
 			else:
 				print("Genuine Dreambox validation passed")
-				if self.FirstRun == True:
+				if self.FirstRun is True:
 					self.appendEntries = False
 					myTubeService.startService()
 				if self.HistoryWindow is not None:
@@ -515,7 +508,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 					self.switchToConfigList()
 				self["feedlist"].style = "state"
 				self['feedlist'].setList(self.statuslist)
-				if self.FirstRun == True:
+				if self.FirstRun is True:
 					if config.plugins.mytube.general.loadFeedOnOpen.value:
 						self.getFeed(self.BASE_STD_FEEDURL, str(config.plugins.mytube.general.startFeed.value))
 
@@ -537,7 +530,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 			self.FirstRun = False
 
 	def firstRunHelpClosed(self):
-		if self.FirstRun == True:
+		if self.FirstRun is True:
 			self.FirstRun = False
 			self.switchToConfigList()
 
@@ -610,7 +603,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 			for job in job_manager.getPendingJobs():
 				self.tasklist.append((job, job.name, job.getStatustext(), int(100 * job.progress / float(job.end)), str(100 * job.progress / float(job.end)) + "%"))
 			self.session.open(MyTubeTasksScreen, self.skin_path, self.tasklist)
-		elif answer == None:
+		elif answer is None:
 			self.ScreenClosed()
 
 	def openKeyboard(self):
@@ -702,7 +695,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 			self.switchToFeedList()
 		elif answer == "switch2search":
 			self.switchToConfigList()
-		elif answer == None:
+		elif answer is None:
 			if self.currList == "historylist":
 				if self.HistoryWindow.status() is False:
 					self.HistoryWindow.activate()
@@ -921,7 +914,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 		if self.HistoryWindow is not None and self.HistoryWindow.shown:
 			self.HistoryWindow.deactivate()
 			self.HistoryWindow.instance.hide()
-		if self.FirstRun == True:
+		if self.FirstRun is True:
 			self.handleFirstHelpWindow()
 
 	def switchToFeedList(self, append=False):
@@ -1132,7 +1125,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 		self.mytubeentries = myTubeService.getEntries()
 		self.maxentries = len(self.mytubeentries) - 1
 		if self.mytubeentries and len(self.mytubeentries):
-			if self.appendEntries == False:
+			if self.appendEntries is False:
 				self.videolist = []
 				for entry in self.mytubeentries:
 					TubeID = entry.getTubeId()
@@ -1273,7 +1266,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 					if thumbnailUrl is not None:
 						if tubeid not in self.pixmaps_to_load:
 							self.pixmaps_to_load.append(tubeid)
-							if (os_path.exists(thumbnailFile) == True):
+							if (os_path.exists(thumbnailFile) is True):
 								self.fetchFinished(False, tubeid)
 							else:
 								client.downloadPage(six.ensure_binary(thumbnailUrl), thumbnailFile).addCallback(self.fetchFinished, str(tubeid)).addErrback(self.fetchFailed, str(tubeid))
@@ -1293,7 +1286,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 			thumbnailFile = resolveFilename(SCOPE_CURRENT_PLUGIN, "Extensions/MyTube/plugin.png")
 		else:
 			thumbnailFile = "/tmp/" + str(tubeid) + ".jpg"
-		if (os_path.exists(thumbnailFile) == True):
+		if (os_path.exists(thumbnailFile) is True):
 			self.picloads[tubeid] = ePicLoad()
 			self.picloads[tubeid].PictureData.get().append(boundFunction(self.finish_decode, tubeid))
 			self.picloads[tubeid].setPara((self["thumbnail"].instance.size().width(), self["thumbnail"].instance.size().height(), 1, 1, False, 1, "#00000000"))
@@ -1306,10 +1299,10 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 		print("thumbnail finish_decode:", tubeid, info)
 		ptr = self.picloads[tubeid].getData()
 		thumbnailFile = "/tmp/" + str(tubeid) + ".jpg"
-		if ptr != None:
+		if ptr is not None:
 			if tubeid in self.Details:
 				self.Details[tubeid]["thumbnail"] = ptr
-			if (os_path.exists(thumbnailFile) == True):
+			if (os_path.exists(thumbnailFile) is True):
 				os_remove(thumbnailFile)
 			del self.picloads[tubeid]
 		else:
@@ -1329,7 +1322,7 @@ class MyTubePlayerMainScreen(Screen, ConfigListScreen):
 				if tubeid in self.Details:
 					if self.Details[tubeid]["thumbnail"] is not None:
 						thumbnail = entry[4]
-						if thumbnail == None:
+						if thumbnail is None:
 							myentry = entry[0]
 							self.videolist[idx] = self.buildEntryComponent(myentry, tubeid)
 				idx += 1
@@ -1440,7 +1433,7 @@ class MyTubeVideoInfoScreen(Screen):
 			duration = "%d:%02d" % (mins, secs)
 			self["duration"].setText(_("Duration: ") + str(duration))
 
-		if self.videoinfo["Author"] != None or '':
+		if self.videoinfo["Author"] is not None or '':
 			self["author"].setText(_("Author: ") + self.videoinfo["Author"])
 
 		if self.videoinfo["Published"] != "unknown":
@@ -1499,7 +1492,7 @@ class MyTubeVideoInfoScreen(Screen):
 			if entry[0] == index:
 				self.index = index
 				thumbnailFile = entry[2]
-				if (os_path.exists(thumbnailFile) == True):
+				if (os_path.exists(thumbnailFile) is True):
 					print("[decodePic] DECODING THUMBNAIL for INDEX:" + str(self.index) + "and file: " + thumbnailFile)
 					self.picloads[index].setPara((self["thumbnail"].instance.size().width(), self["thumbnail"].instance.size().height(), 1, 1, False, 1, "#00000000"))
 					self.picloads[index].startDecode(thumbnailFile)
@@ -1509,9 +1502,9 @@ class MyTubeVideoInfoScreen(Screen):
 	def finish_decode(self, picindex=None, picInfo=None):
 		print("finish_decode - of INDEX", picindex)
 		ptr = self.picloads[picindex].getData()
-		if ptr != None:
+		if ptr is not None:
 			self.thumbnails[picindex][3] = ptr
-			if (os_path.exists(self.thumbnails[picindex][2]) == True):
+			if (os_path.exists(self.thumbnails[picindex][2]) is True):
 				print("removing", self.thumbnails[picindex][2])
 				os_remove(self.thumbnails[picindex][2])
 				del self.picloads[picindex]

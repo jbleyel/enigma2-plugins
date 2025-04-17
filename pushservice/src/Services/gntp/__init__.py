@@ -9,18 +9,18 @@ __version__ = '0.7'
 
 #GNTP/<version> <messagetype> <encryptionAlgorithmID>[:<ivValue>][ <keyHashAlgorithmID>:<keyHash>.<salt>]
 GNTP_INFO_LINE = re.compile(
-	'GNTP/(?P<version>\d+\.\d+) (?P<messagetype>REGISTER|NOTIFY|SUBSCRIBE|\-OK|\-ERROR)' +
+	r'GNTP/(?P<version>\d+\.\d+) (?P<messagetype>REGISTER|NOTIFY|SUBSCRIBE|\-OK|\-ERROR)' +
 	' (?P<encryptionAlgorithmID>[A-Z0-9]+(:(?P<ivValue>[A-F0-9]+))?) ?' +
 	'((?P<keyHashAlgorithmID>[A-Z0-9]+):(?P<keyHash>[A-F0-9]+).(?P<salt>[A-F0-9]+))?\r\n',
 	re.IGNORECASE
 )
 
 GNTP_INFO_LINE_SHORT = re.compile(
-	'GNTP/(?P<version>\d+\.\d+) (?P<messagetype>REGISTER|NOTIFY|SUBSCRIBE|\-OK|\-ERROR)',
+	r'GNTP/(?P<version>\d+\.\d+) (?P<messagetype>REGISTER|NOTIFY|SUBSCRIBE|\-OK|\-ERROR)',
 	re.IGNORECASE
 )
 
-GNTP_HEADER = re.compile('([\w-]+):(.+)')
+GNTP_HEADER = re.compile(r'([\w-]+):(.+)')
 
 GNTP_EOL = '\r\n'
 
@@ -112,7 +112,7 @@ class _GNTPBase(object):
 			self.info['encryptionAlgorithmID'] = None
 			self.info['keyHashAlgorithm'] = None
 			return
-		if not self.encryptAlgo in list(hash.keys()):
+		if self.encryptAlgo not in list(hash.keys()):
 			raise UnsupportedError('INVALID HASH "%s"' % self.encryptAlgo)
 
 		hashfunction = hash.get(self.encryptAlgo)
@@ -154,7 +154,7 @@ class _GNTPBase(object):
 	def _validate_password(self, password):
 		"""Validate GNTP Message against stored password"""
 		self.password = password
-		if password == None:
+		if password is None:
 			raise AuthError('Missing password')
 		keyHash = self.info.get('keyHash', None)
 		if keyHash is None and self.password is None:

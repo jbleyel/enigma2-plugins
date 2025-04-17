@@ -63,7 +63,7 @@ class ContactsList:
 
         @type client: L{Client<interfaces.IClient>}
         """
-        if not client in self.clients:
+        if client not in self.clients:
             self.clients.append(client)
 
     def unregisterAccountClient(self, client):
@@ -189,14 +189,14 @@ class GroupConversation:
 
     def sendOutPipe(self):
         if len(str(self.pipe.getOutText())) > 0:
-         	if (self.pipe.getOutText() == "/QUIT"):
-         		self.pipe.debug("/quit detected....")
-         		self.pipe.clearOutText()
-         		self.group.bye()
-         	else:
-         		self.pipe.debug("sending group chat : %s" % str(self.pipe.getOutText()))
-         		self.sendText(str(self.pipe.getOutText()))
-         		self.pipe.clearOutText()
+            if (self.pipe.getOutText() == "/QUIT"):
+                self.pipe.debug("/quit detected....")
+                self.pipe.clearOutText()
+                self.group.bye()
+            else:
+                self.pipe.debug("sending group chat : %s" % str(self.pipe.getOutText()))
+                self.sendText(str(self.pipe.getOutText()))
+                self.pipe.clearOutText()
 
     def showGroupMessage(self, sender, text, metadata=None):
         """Displays to the user a message sent to this group from the given sender
@@ -233,7 +233,7 @@ class GroupConversation:
 
         @type member: string (XXX: Not Person?)
         """
-        if not member in self.members:
+        if member not in self.members:
             self.members.append(member)
         self.pipe.add("-!- %s joined %s" % (member, self.group.name))
         self.refreshMemberList()

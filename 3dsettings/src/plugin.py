@@ -32,7 +32,12 @@ from Screens.Screen import Screen
 from enigma import iPlayableService, iServiceInformation, eServiceCenter, eServiceReference, eDBoxLCD
 from ServiceReference import ServiceReference
 from os.path import basename as os_basename
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 import six
 
 # for localized messages
@@ -59,10 +64,10 @@ def getmode():
 
 def toggleDisplay(configElement):
 	from Components.Lcd import LCD
-	if configElement.value == False:  # turn display on
+	if configElement.value is False:  # turn display on
 		print("[3D Settings] turning display on")
 		LCD().setBright(config.lcd.bright.value)
-	elif (config.plugins.threed.disableDisplay.value == True) and (getmode() != THREE_D_OFF):  # turn display off
+	elif (config.plugins.threed.disableDisplay.value is True) and (getmode() != THREE_D_OFF):  # turn display off
 		print("[3D Settings] turning display off")
 		LCD().setBright(0)
 	eDBoxLCD.getInstance().update()
@@ -166,7 +171,7 @@ class AutoThreeD(Screen):
 		self.lastmode = mode
 
 
-class ThreeDSettings(Screen, ConfigListScreen):
+class ThreeDSettings(ConfigListScreen, Screen):
 	skin = """
 		<screen position="center,center" size="570,420" title="3D settings" >
 			<ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" alphatest="on" />
@@ -264,7 +269,7 @@ def opensettings(session, **kwargs):
 
 
 def settings(menuid, **kwargs):
-	if getImageDistro() in ('openhdf'):
+	if IMAGEDISTRO in ('openhdf'):
 		if menuid != "video_menu":
 			return []
 	else:

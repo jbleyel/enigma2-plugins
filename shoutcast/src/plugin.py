@@ -109,7 +109,7 @@ class myHTTPClientFactory(HTTPClientFactory):
 
 	def clientConnectionLost(self, connector, reason):
 		lostreason = (b"Connection was closed cleanly" in vars(reason))
-		if lostreason == None:
+		if lostreason is None:
 			print("[SHOUTcast] Lost connection, reason: %s ,trying to reconnect!" % reason)
 			connector.connect()
 
@@ -587,7 +587,7 @@ class SHOUTcastWidget(Screen):
 		except:
 			return []
 		data = root.find("data")
-		if data == None:
+		if data is None:
 			print("[SHOUTcast] could not find data tag, assume flat listing\n")
 			return [SHOUTcastGenre(name=childs.get("name")) for childs in root.findall("genre")]
 		for glist in data.findall("genrelist"):
@@ -736,7 +736,7 @@ class SHOUTcastWidget(Screen):
 			return []
 		config_bitrate = int(config.plugins.shoutcast.streamingrate.value)
 		data = root.find("data")
-		if data == None:
+		if data is None:
 			print("[SHOUTcast] could not find data tag\n")
 			return []
 		for slist in data.findall("stationlist"):
@@ -845,9 +845,9 @@ class SHOUTcastWidget(Screen):
 			self["statustext"].setText(_("Searching SHOUTcast for %s...") % searchstring)
 			self["list"].hide()
 			if len(devid) > 8:
-			   self.stationListURL = self.SC + "/station/advancedsearch&f=xml&k=%s&search=%s" % (devid, searchstring)
+				self.stationListURL = self.SC + "/station/advancedsearch&f=xml&k=%s&search=%s" % (devid, searchstring)
 			else:
-			   self.stationListURL = "http://207.200.98.1/sbin/newxml.phtml?search=%s" % searchstring
+				self.stationListURL = "http://207.200.98.1/sbin/newxml.phtml?search=%s" % searchstring
 			self.mode = self.SEARCHLIST
 			self.searchSHOUTcastString = searchstring
 			self.stationListIndex = 0
@@ -997,16 +997,17 @@ class SHOUTcastWidget(Screen):
 			self["cover"].updateIcon(coverfile)
 			self["cover"].doShow()
 
+	# TODO : this needs to be refactored
 	def __event(self, ev):
 		if ev != 17 and ev != 18:
 			print("[SHOUTcast] EVENT ==>", ev)
-		if ev == 1 or ev == 4:
+		if ev == 1:  # or ev == 4:
 			print("[SHOUTcast] Tuned in, playing now!")
 		elif ev == 3 or ev == 7:
 			self["statustext"].setText(_("Stream stopped playing, playback of stream stopped!"))
 			print("[SHOUTcast] Stream stopped playing, playback of stream stopped!")
 			self.session.nav.stopService()
-		elif ev == 5:
+		elif ev == 271 or ev == 4:
 			if not self.currPlay:
 				return
 			sTitle = self.currPlay.info().getInfoString(iServiceInformation.sTagTitle)
@@ -1113,7 +1114,7 @@ class Cover(Pixmap):
 
 	def paintIconPixmapCB(self, picInfo=None):
 		ptr = self.picload.getData()
-		if ptr != None:
+		if ptr is not None:
 			self.instance.setPixmap(ptr.__deref__())
 			if self.visible:
 				self.doShow()
@@ -1183,7 +1184,7 @@ class SHOUTcastList(GUIComponent, object):
 			self.l.setItemHeight(self.favlist)
 
 	def connectSelChanged(self, fnc):
-		if not fnc in self.onSelectionChanged:
+		if fnc not in self.onSelectionChanged:
 			self.onSelectionChanged.append(fnc)
 
 	def disconnectSelChanged(self, fnc):
@@ -1251,7 +1252,7 @@ class SHOUTcastLCDScreen(Screen):
 		self["text2"].setText(text[0:39])
 
 
-class SHOUTcastSetup(Screen, ConfigListScreen):
+class SHOUTcastSetup(ConfigListScreen, Screen):
 
 	skin = """
 		<screen position="center,center" size="600,400" title="SHOUTcast Setup" >

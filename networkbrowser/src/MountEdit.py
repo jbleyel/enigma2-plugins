@@ -17,10 +17,15 @@ from enigma import ePoint
 from .AutoMount import iAutoMount, AutoMount
 from re import sub as re_sub
 
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 
 
-class AutoMountEdit(Screen, ConfigListScreen):
+class AutoMountEdit(ConfigListScreen, Screen):
 	skin = """
 		<screen name="AutoMountEdit" position="center,center" size="560,450" title="MountEdit">
 			<ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" alphatest="on" />
@@ -133,7 +138,7 @@ class AutoMountEdit(Screen, ConfigListScreen):
 		self.sharetypelist.append(("nfs", _("NFS share")))
 
 		mountusing_default = "fstab"
-		if getImageDistro() in ("openvix", "easy-gui-aus", "beyonwiz", "openatv", "openhdf"):
+		if IMAGEDISTRO in ("openvix", "easy-gui-aus", "beyonwiz", "openatv", "openhdf"):
 			mountusing_default = "autofs"
 
 		if 'mountusing' in self.mountinfo:
@@ -171,7 +176,7 @@ class AutoMountEdit(Screen, ConfigListScreen):
 		else:
 			defaultOptions = "rw,utf8,vers=2.0"
 		if self.mountinfo['sharename'] and 'sharename' in self.mountinfo:
-			sharename = re_sub("\W", "", self.mountinfo['sharename'])
+			sharename = re_sub(r"\W", "", self.mountinfo['sharename'])
 			self.old_sharename = sharename
 		else:
 			sharename = ""
@@ -324,7 +329,7 @@ class AutoMountEdit(Screen, ConfigListScreen):
 			if current[1].help_window.instance is not None:
 				current[1].help_window.instance.hide()
 
-		sharename = re_sub("\W", "", self.sharenameConfigEntry.value)
+		sharename = re_sub(r"\W", "", self.sharenameConfigEntry.value)
 		if self.sharedirConfigEntry.value.startswith("/"):
 			sharedir = self.sharedirConfigEntry.value[1:]
 		else:
@@ -344,7 +349,7 @@ class AutoMountEdit(Screen, ConfigListScreen):
 			self.session.openWithCallback(self.applyConfig, MessageBox, _("Are you sure you want to save this network mount?\n\n"))
 
 	def updateConfig(self, ret=False):
-		if (ret == True):
+		if (ret is True):
 			sharedir = None
 			if self.old_sharename != self.sharenameConfigEntry.value:
 				xml_sharename = self.old_sharename
@@ -387,13 +392,13 @@ class AutoMountEdit(Screen, ConfigListScreen):
 				self.close()
 
 	def applyConfig(self, ret=False):
-		if (ret == True):
+		if (ret is True):
 			data = {'isMounted': False, 'mountusing': False, 'active': False, 'ip': False, 'sharename': False, 'sharedir': False,
 					'username': False, 'password': False, 'mounttype': False, 'options': False, 'hdd_replacement': False}
 			data['mountusing'] = self.mountusingConfigEntry.value
 			data['active'] = self.activeConfigEntry.value
 			data['ip'] = self.ipConfigEntry.getText()
-			data['sharename'] = re_sub("\W", "", self.sharenameConfigEntry.value)
+			data['sharename'] = re_sub(r"\W", "", self.sharenameConfigEntry.value)
 			# "\W" matches everything that is "not numbers, letters, or underscores",where the alphabet defaults to ASCII.
 			if self.sharedirConfigEntry.value.startswith("/"):
 				data['sharedir'] = self.sharedirConfigEntry.value[1:]

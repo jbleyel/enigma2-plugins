@@ -16,7 +16,12 @@ from Tools.Directories import fileExists
 from . import _
 import os
 
-from boxbranding import getImageDistro, getBoxType
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 
 try:
 	from Components.AVSwitch import iAVSwitch as video_hw
@@ -265,7 +270,7 @@ class AutoRes(Screen):
 			port = config.av.videoport.value
 			if port in config.av.videomode:
 				config.av.videomode[port].addNotifier(self.defaultModeChanged)
-			usable = config.plugins.autoresolution.enable.value and not port in ('DVI-PC', 'Scart')
+			usable = config.plugins.autoresolution.enable.value and port not in ('DVI-PC', 'Scart')
 		else:  # videomode changed in normal av setup
 			global videoresolution_dictionary
 			print("[AutoRes] mode changed to", configEntry.value)
@@ -317,7 +322,7 @@ class AutoRes(Screen):
 	def enableChanged(self, configElement):
 		global usable
 		if configElement.value:
-			usable = not port in ('DVI-PC', 'Scart')
+			usable = port not in ('DVI-PC', 'Scart')
 			self.determineContent()
 		else:
 			usable = False
@@ -528,7 +533,7 @@ class ResolutionLabel(Screen):
 		self.hideTimer.start(config.usage.infobar_timeout.index * 2000, True)
 
 
-class AutoResSetupMenu(Screen, ConfigListScreen):
+class AutoResSetupMenu(ConfigListScreen, Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = ["AutoResSetupMenu", "Setup"]
@@ -864,8 +869,14 @@ def autostart(reason, **kwargs):
 
 
 def startSetup(menuid):
-	if getImageDistro() in ('teamblue', 'openhdf'):
+	if IMAGEDISTRO in ('openhdf'):
 		if menuid != "video_menu":
+			return []
+	elif IMAGEDISTRO in ('teamblue'):
+		if menuid != "video":
+			return []
+	elif IMAGEDISTRO in ('openbh', 'openvix'):
+		if menuid != "av":
 			return []
 	else:
 		if menuid != "system":

@@ -12,7 +12,12 @@ from .PluginHiderSetup import PluginHiderSetup
 
 from operator import attrgetter
 
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 
 config.plugins.pluginhider = ConfigSubsection()
 config.plugins.pluginhider.hideextensions = ConfigSet(choices=[])
@@ -25,7 +30,7 @@ hasPluginWeight = True
 def hidePlugin(plugin):
 	"""Convenience function for external code to hide a plugin."""
 	hide = config.plugins.pluginhider.hideplugins.value
-	if not plugin.name in hide:
+	if plugin.name not in hide:
 		hide.append(plugin.name)
 		config.plugins.pluginhider.hideplugins.save()
 
@@ -83,7 +88,7 @@ def main(session, *args, **kwargs):
 
 
 def menu(menuid):
-	if getImageDistro() in ('teamblue'):
+	if IMAGEDISTRO in ('teamblue'):
 		if menuid != "general_menu":
 			return []
 	else:

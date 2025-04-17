@@ -46,10 +46,10 @@ config.plugins.youtubeplayer.serverprofile = ConfigText("", False)
 #				], "&fmt=18")
 config.plugins.youtubeplayer.quality = ConfigSelection(
 				[
-				 ("1", _("Low Quality (Mono)")),
-				 ("6", _("Medium Quality (Mono)")),
-				 ("18", _("High Quality (Stereo)")),
-				 ("22", _("HD Quality (Stereo)"))
+					("1", _("Low Quality (Mono)")),
+					("6", _("Medium Quality (Mono)")),
+					("18", _("High Quality (Stereo)")),
+					("22", _("HD Quality (Stereo)"))
 				], "18")
 
 
@@ -123,7 +123,7 @@ class __YouTubeUserConfig():
 youTubeUserConfig = __YouTubeUserConfig()
 
 
-class YouTubeUserConfigScreen(Screen, ConfigListScreen):
+class YouTubeUserConfigScreen(ConfigListScreen, Screen):
 	def __init__(self, session, user):
 		Screen.__init__(self, session)
 		self.user = user

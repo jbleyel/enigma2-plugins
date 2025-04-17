@@ -62,7 +62,12 @@ from Components.ConfigList import ConfigListScreen
 # GUI (Summary)
 from Screens.Setup import SetupSummary
 
-from boxbranding import getImageDistro
+try:
+	from Components.SystemInfo import BoxInfo
+	IMAGEDISTRO = BoxInfo.getItem("distro")
+except:
+	from boxbranding import getImageDistro
+	IMAGEDISTRO = getImageDistro()
 ###############################################################################
 VERSION = "0.1.9"
 # History:
@@ -101,7 +106,7 @@ config.plugins.AutomaticCleanup.deleteTimersOlderThan = ConfigSelection(default=
 config.plugins.AutomaticCleanup.deleteOrphanedMovieFiles = ConfigYesNo(default=False)
 
 
-class AutomaticCleanupSetup(Screen, ConfigListScreen):  # config
+class AutomaticCleanupSetup(ConfigListScreen, Screen):  # config
 
 	skin = """
 		<screen name="SystemCleanup" position="center,center" size="630,315" title="Automatic System Cleanup Setup" >
@@ -271,7 +276,7 @@ class AutomaticCleanup:
 		if int(config.plugins.AutomaticCleanup.keepSettings.value) > -1 or int(config.plugins.AutomaticCleanup.deleteSettingsOlderThan.value) > -1:  # check only if feature is enabled
 			print(pluginPrintname, "Cleaning up setting backups")
 			self.backupPath = self.getBackupPath()
-			if (path.exists(self.backupPath) == False):
+			if (path.exists(self.backupPath) is False):
 				print(pluginPrintname, "No backup directory available!")
 				return
 			self.settingList = glob(self.backupPath + '/*-enigma2settingsbackup.tar.gz')
@@ -473,9 +478,9 @@ class AutomaticCleanup:
 
 	def cleanupEnabled(self):
 		if int(config.plugins.AutomaticCleanup.deleteTimersOlderThan.value) > -1 or \
-		   int(config.plugins.AutomaticCleanup.keepSettings.value) > -1 or \
-		   int(config.plugins.AutomaticCleanup.deleteSettingsOlderThan.value) > -1 or \
-		   config.plugins.AutomaticCleanup.deleteOrphanedMovieFiles.value:
+			int(config.plugins.AutomaticCleanup.keepSettings.value) > -1 or \
+			int(config.plugins.AutomaticCleanup.deleteSettingsOlderThan.value) > -1 or \
+			config.plugins.AutomaticCleanup.deleteOrphanedMovieFiles.value:
 			return True
 		else:
 			return False
@@ -490,7 +495,7 @@ def setup(session, **kwargs):
 
 
 def startSetup(menuid):
-	if getImageDistro() in ('teamblue'):
+	if IMAGEDISTRO in ('teamblue'):
 		if menuid != "general_menu":
 			return []
 	else:

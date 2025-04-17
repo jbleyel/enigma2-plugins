@@ -29,9 +29,9 @@ from Screens.Screen import Screen
 from Components.ActionMap import ActionMap
 from Components.Sources.StaticText import StaticText
 from Components.Pixmap import Pixmap
-from enigma import ePicLoad, eRect, eSize, gPixmapPtr
-from Components.AVSwitch import AVSwitch
+from enigma import BT_SCALE, BT_KEEP_ASPECT_RATIO
 from Components.config import ConfigSubsection, ConfigSubList, ConfigInteger, config
+from Tools.LoadPixmap import LoadPixmap
 from .setup import initConfig, MSNWeatherPluginEntriesListConfigScreen
 from .MSNWeather import MSNWeather
 import time
@@ -209,8 +209,8 @@ class MSNWeatherPlugin(Screen):
 					self["condition"].text = item.skytext
 					self["humidity"].text = _("Humidity: %s %%") % item.humidity
 					self["wind_condition"].text = item.winddisplay
-					c = time.strptime(item.observationtime, "%H:%M:%S")
-					self["observationtime"].text = _("Observation time: %s") % time.strftime("%H:%M", c)
+					c = time.strptime(item.observationtime, "%X")
+					self["observationtime"].text = _("Observation time: %s") % time.strftime("%X", c)[:5]
 					self["observationpoint"].text = _("Observation point: %s") % item.observationpoint
 					self["feelsliketemp"].text = _("Feels like %s") % item.feelslike + "°" + self.weatherData.degreetype
 				else:
@@ -260,41 +260,18 @@ class WeatherIcon(Pixmap):
 	def __init__(self):
 		Pixmap.__init__(self)
 		self.IconFileName = ""
-		self.picload = ePicLoad()
-		self.picload.PictureData.get().append(self.paintIconPixmapCB)
+		self.pix = None
 
 	def onShow(self):
 		Pixmap.onShow(self)
-		sc = AVSwitch().getFramebufferScale()
-		self._aspectRatio = eSize(sc[0], sc[1])
-		self._scaleSize = self.instance.size()
-		self.picload.setPara((self._scaleSize.width(), self._scaleSize.height(), sc[0], sc[1], True, 2, '#ff000000'))
-
-	def paintIconPixmapCB(self, picInfo=None):
-		ptr = self.picload.getData()
-		if ptr is not None:
-			pic_scale_size = eSize()
-			# To be added in the future:
-			if 'scale' in eSize.__dict__ and self._scaleSize.isValid() and self._aspectRatio.isValid():
-				pic_scale_size = ptr.size().scale(self._scaleSize, self._aspectRatio)
-			# To be removed in the future:
-			elif 'scaleSize' in gPixmapPtr.__dict__:
-				pic_scale_size = ptr.scaleSize()
-
-			if pic_scale_size.isValid():
-				pic_scale_width = pic_scale_size.width()
-				pic_scale_height = pic_scale_size.height()
-				dest_rect = eRect(0, 0, pic_scale_width, pic_scale_height)
-				self.instance.setScale(1)
-				self.instance.setScaleDest(dest_rect)
-			else:
-				self.instance.setScale(0)
-			self.instance.setPixmap(ptr)
-		else:
-			self.instance.setPixmap(None)
 
 	def updateIcon(self, filename):
 		new_IconFileName = filename
 		if (self.IconFileName != new_IconFileName):
 			self.IconFileName = new_IconFileName
-			self.picload.startDecode(self.IconFileName)
+			self.pix = LoadPixmap(self.IconFileName)
+			try:
+				self.instance.setPixmapScale(BT_SCALE | BT_KEEP_ASPECT_RATIO)
+			except:
+				self.instance.setScale(1)
+			self.instance.setPixmap(self.pix)

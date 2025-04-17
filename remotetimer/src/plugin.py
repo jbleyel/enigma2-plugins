@@ -68,7 +68,7 @@ def getPage(url, callback, errback):
 		authheader = {b"Authorization": b"Basic %s" % base64string}
 		print("[remotetimer] Headers=%s" % (authheader))
 		try:
-			r = get(url, headers=authheader)
+			r = get(url, headers=authheader, timeout=5)
 			print("[remotetimer] statuscode=%s" % (r.status_code))
 			if r.status_code == 200:
 				data = r.content.decode('utf-8') if PY3 else r.content
@@ -142,10 +142,7 @@ class RemoteTimerScreen(Screen):
 	def _gotPageLoad(self, data):
 		print("[remotetimer] data=%s" % (data))
 		# this call is not optimized so it is easier to extend this functionality to support other kinds of receiver
-		try:  # openatv
-			self["timerlist"].timerListWidget.setList(self.generateTimerE2(data))
-		except:  # all other distros
-			self["timerlist"].l.setList(self.generateTimerE2(data))
+		self["timerlist"].l.setList(self.generateTimerE2(data))
 		# info = _("finish fetching remote data...")
 		self["text"].setText("")
 
@@ -209,8 +206,7 @@ class RemoteTimerScreen(Screen):
 
 
 class E2Timer:
-	def __init__(self, sref="", sname="", name="", disabled=0, failed=0, timebegin=0, timeend=0, duration=0, startprepare=0,
-		  		state=0, repeated=0, justplay=0, eventId=0, afterevent=0, dirname="", description="", isAutoTimer=0, ice_timer_id=None):
+	def __init__(self, sref="", sname="", name="", disabled=0, failed=0, timebegin=0, timeend=0, duration=0, startprepare=0, state=0, repeated=0, justplay=0, eventId=0, afterevent=0, dirname="", description="", isAutoTimer=0, ice_timer_id=None):
 		self.service_ref = RemoteService(sref, sname)
 		self.name = name
 		self.disabled = disabled
@@ -235,7 +231,7 @@ class E2Timer:
 		self.hasEndTime = timeend != 0
 
 
-class RemoteTimerSetup(Screen, ConfigListScreen):
+class RemoteTimerSetup(ConfigListScreen, Screen):
 	skin = """
 		<screen position="center,center" size="560,410" title="Settings" >
 			<widget name="config" position="5,40" size="480,335" scrollbarMode="showOnDemand" />
@@ -250,8 +246,7 @@ class RemoteTimerSetup(Screen, ConfigListScreen):
 		self.setTitle(_("Remote-Timer settings"))
 		self["HelpWindow"] = Pixmap()
 		self["HelpWindow"].hide()
-		self["SetupActions"] = ActionMap(["SetupActions", "ColorActions"],
-										 {
+		self["SetupActions"] = ActionMap(["SetupActions", "ColorActions"], {
 			"ok": self.keySave,
 			"cancel": self.Exit,
 			"green": self.keySave,
@@ -294,32 +289,34 @@ def timerInit():
 
 def createNewnigma2Setup(self, widget="config"):
 	print("[RemoteTimer] createNewnigma2Setup widget: %s" % widget)
-	try:
-		if baseTimerEntrySetup:
-			baseTimerEntrySetup(self, widget)
-	except TypeError:  # for distros that do not use the "widget" argument in Setup.createSetup
-		print("[RemoteTimer] createNewnigma2Setup no widget")
-		if baseTimerEntrySetup:
-			baseTimerEntrySetup(self)
-	try:
-		self.list.insert(0, getConfigListEntry(_("Remote Timer"), self.timerentry_remote))
-	except Exception:
+	args = baseTimerEntrySetup.__code__.co_varnames[:baseTimerEntrySetup.__code__.co_argcount]
+	if not hasattr(self, "timerentry_remote"):  # sometimes this is set outside this plugin
 		self.timerentry_remote = ConfigYesNo(default=config.plugins.remoteTimer.default.value)
-		self.list.insert(0, getConfigListEntry(_("Remote Timer"), self.timerentry_remote))
-	# force re-reading the list
-	self[widget].list = self.list
+	timerEntryRemote = getConfigListEntry(_("Remote Timer"), self.timerentry_remote)
+	if baseTimerEntrySetup:
+		# if/elif/else clauses are a workaround for different kwargs in TimerEntry.createSetup in different distros
+		if "widget" in args:
+			baseTimerEntrySetup(self, widget)
+		elif "prependItems" in args:
+			baseTimerEntrySetup(self, prependItems=[timerEntryRemote])
+		else:
+			baseTimerEntrySetup(self)
+		if "prependItems" not in args:
+			self.list.insert(0, timerEntryRemote)
+			# force re-reading the list
+			self[widget].list = self.list
 
 
 def newnigma2SubserviceSelected(self, service):
 	print("[RemoteTimer] newnigma2SubserviceSelected entered service: %s" % service)
 	if service is not None:
 		# ouch, this hurts a little
-		service_ref = self.timerServiceReference
-		self.timerServiceReference = ServiceReference(service[1])
+		service_ref = self.timerentry_service_ref
+		self.timerentry_service_ref = ServiceReference(service[1])
 		eit = self.timer.eit
 		self.timer.eit = None
 		newnigma2KeyGo(self)
-		self.timerServiceReference = service_ref
+		self.timerentry_service_ref = service_ref
 		self.timer.eit = eit
 
 
@@ -328,7 +325,7 @@ def newnigma2KeyGo(self):
 	if not self.timerentry_remote.value and baseTimerEntryGo:
 		baseTimerEntryGo(self)
 	else:
-		service_ref = self.timerServiceReference  # timerentry_service_ref
+		service_ref = self.timerentry_service_ref
 		if self.timer.eit is not None:
 			event = eEPGCache.getInstance().lookupEventId(service_ref.ref, self.timer.eit)
 			if event:
@@ -358,6 +355,22 @@ def newnigma2KeyGo(self):
 			if colon_counter < 10:
 				clean_ref += char
 		service_ref = clean_ref
+
+		# start: workaround for variables that are only available in some distros
+		if not hasattr(self, "getTimeStamp"):
+			self.getTimeStamp = self.getTimestamp
+		if not hasattr(self, "timerStartDate"):
+			self.timerStartDate = self.timerentry_date
+		if not hasattr(self, "timerEndTime"):
+			self.timerStartTime = self.timerentry_starttime
+		if not hasattr(self, "timerEndTime"):
+			self.timerEndTime = self.timerentry_endtime
+		if not hasattr(self, "timerMarginBefore"):
+			self.timerMarginBefore = config.recording.margin_before
+		if not hasattr(self, "timerMarginAfter"):
+			self.timerMarginAfter = config.recording.margin_after
+		# end: workaround for variables that are only available in some distros
+
 		# XXX: this will - without any hassle - ignore the value of repeated
 		begin = self.getTimeStamp(self.timerStartDate.value, self.timerStartTime.value) - self.timerMarginBefore.value * 60
 		end = self.getTimeStamp(self.timerStartDate.value, self.timerEndTime.value) + self.timerMarginAfter.value * 60
@@ -368,8 +381,8 @@ def newnigma2KeyGo(self):
 			rt_name = quote(self.timerentry_name.value.decode('utf8').encode('utf8', 'ignore'))
 			rt_description = quote(self.timerentry_description.value.decode('utf8').encode('utf8', 'ignore'))
 		else:
-			rt_name = quote(self.timerName.value.encode('utf8', 'ignore'))
-			rt_description = self.timerDescription.value if self.timerDescription.default != self.timerDescription.value else self.timer.description
+			rt_name = quote(self.timerentry_name.value.encode('utf8', 'ignore'))
+			rt_description = self.timerentry_description.value if self.timerentry_description.default != self.timerentry_description.value else self.timer.description
 			rt_description = quote(rt_description.encode('utf8', 'ignore'))
 		rt_disabled = 0  # XXX: do we really want to hardcode this? why do we offer this option then?
 		rt_repeated = 0  # XXX: same here
@@ -377,12 +390,9 @@ def newnigma2KeyGo(self):
 			rt_dirname = quote(self.timerentry_dirname.value.decode('utf8').encode('utf8', 'ignore')) if PY2 else quote(self.timerLocation.value.encode('utf8', 'ignore'))
 		else:
 			rt_dirname = "None"
-		rt_justplay = 1 if self.timerType.value == "zap" else 0
+		rt_justplay = 1 if self.timerentry_justplay.value == "zap" else 0
 		# XXX: this one is tricky since we do not know if the remote box offers afterEventAuto so lets just keep it simple for now
-		rt_afterEvent = {
-			"deepstandby": AFTEREVENT.DEEPSTANDBY,
-			"standby": AFTEREVENT.STANDBY,
-		}.get(self.timerAfterEvent.value, AFTEREVENT.NONE)
+		rt_afterEvent = {"deepstandby": AFTEREVENT.DEEPSTANDBY, "standby": AFTEREVENT.STANDBY, }.get(self.timerentry_afterevent.value, AFTEREVENT.NONE)
 		# Add Timer on RemoteBox via WebIf Command
 		# http://192.168.178.20/web/timeradd?sRef=&begin=&end=&name=&description=&disabled=&justplay=&afterevent=&repeated=
 		remoteip = "%d.%d.%d.%d" % tuple(config.plugins.remoteTimer.httpip.value)

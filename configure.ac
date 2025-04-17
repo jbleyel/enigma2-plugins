@@ -96,6 +96,9 @@ AM_CONDITIONAL(VUDUO2, test "$BOXTYPE" == vuduo2)
 AM_CONDITIONAL(XC7346, test "$BOXTYPE" == xc7346)
 AM_CONDITIONAL(XP1000, test "$BOXTYPE" == xp1000)
 
+AM_CONDITIONAL(REMOTETIMER2, test `echo "$DISTRO" | cut -b 1-7` == "openatv")
+AM_CONDITIONAL(PARTNERBOX2, test `echo "$DISTRO" | cut -b 1-7` == "openatv")
+
 PKG_CHECK_MODULES(ENIGMA2, enigma2)
 PKG_CHECK_MODULES(LIBCRYPTO, libcrypto)
 
@@ -563,6 +566,10 @@ partnerbox/src/Makefile
 partnerbox/src/icons/Makefile
 partnerbox/src/buttons/Makefile
 
+partnerbox2/Makefile
+partnerbox2/po/Makefile
+partnerbox2/src/Makefile
+
 permanentclock/Makefile
 permanentclock/meta/Makefile
 permanentclock/po/Makefile
@@ -620,6 +627,10 @@ remotetimer/Makefile
 remotetimer/meta/Makefile
 remotetimer/src/Makefile
 
+remotetimer2/Makefile
+remotetimer2/meta/Makefile
+remotetimer2/src/Makefile
+
 rsdownloader/Makefile
 rsdownloader/meta/Makefile
 rsdownloader/po/Makefile
@@ -665,6 +676,7 @@ simplerss/Makefile
 simplerss/meta/Makefile
 simplerss/po/Makefile
 simplerss/src/Makefile
+simplerss/src/icons/Makefile
 
 startuptostandby/Makefile
 startuptostandby/meta/Makefile
@@ -875,6 +887,10 @@ Series2Folder/src/Makefile
 epgexport/Makefile
 epgexport/po/Makefile
 epgexport/src/Makefile
+
+mediathekviewweb/Makefile
+mediathekviewweb/src/Makefile
+mediathekviewweb/src/img/Makefile
 
 ])
 AC_OUTPUT

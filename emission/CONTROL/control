@@ -1,2 +1,2 @@
 Description: basic frontend to the transmission bittorrent client
-Depends: enigma2, python-transmissionrpc
+Depends: transmission, transmission-client, python3-transmission-rpc

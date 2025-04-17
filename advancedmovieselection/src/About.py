@@ -43,7 +43,7 @@ class VersionList(GUIComponent):
         self.onSelectionChanged = []
 
     def connectSelChanged(self, fnc):
-        if not fnc in self.onSelectionChanged:
+        if fnc not in self.onSelectionChanged:
             self.onSelectionChanged.append(fnc)
 
     def disconnectSelChanged(self, fnc):
@@ -125,8 +125,6 @@ class AboutDetails(Screen):
             "red": self.close,
             "back": self.close,
             "nextBouquet": self.pageUp,
-            "nextBouquet": self.pageUp,
-            "prevBouquet": self.pageDown,
             "prevBouquet": self.pageDown,
         }, -1)
         self["key_red"] = StaticText()
@@ -157,7 +155,7 @@ class AboutDetails(Screen):
         self["version_list"].show()
         #if len(versionList) > 0:
         #    self["version_list"].instance.moveSelectionTo(len(versionList) - 1)
-        if not self.selectionChanged in self["version_list"].onSelectionChanged:
+        if self.selectionChanged not in self["version_list"].onSelectionChanged:
             self["version_list"].onSelectionChanged.append(self.selectionChanged)
         self.selectionChanged()
 

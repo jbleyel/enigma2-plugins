@@ -104,7 +104,7 @@ class MovielistPreview():
 		config.plugins.MovielistPreview.enabled.save()
 
 	def showPreview(self, movie):
-		if self.working == False:
+		if self.working is False:
 			self.dialog.hide()
 			if movie and self.mayShow and config.plugins.MovielistPreview.enabled.value:
 				png = movie + "_mp.jpg"
@@ -118,7 +118,7 @@ class MovielistPreview():
 
 	def showPreviewCallback(self, picInfo=None):
 		ptr = self.picload.getData()
-		if ptr != None:
+		if ptr is not None:
 			self.dialog["preview"].instance.setPixmap(ptr)
 			self.dialog.show()
 		self.working = False
@@ -160,11 +160,10 @@ class MovielistPreviewPositionerCoordinateEdit(ConfigListScreen, Screen):
 			getConfigListEntry("x position:", self.xEntry),
 			getConfigListEntry("y position:", self.yEntry)])
 
-		self["actions"] = ActionMap(["OkCancelActions", "ColorActions"],
-			{
-				"green": self.ok,
-				 "cancel": self.close
-			}, -1)
+		self["actions"] = ActionMap(["OkCancelActions", "ColorActions"], {
+			"green": self.ok,
+			"cancel": self.close
+		}, -1)
 
 	def ok(self):
 		self.close([self.xEntry.value, self.yEntry.value])
@@ -395,7 +394,7 @@ class MovielistPreviewAutoCreator(Screen):
 		self.onLayoutFinish.append(self.createPreviews)
 
 	def exit(self):
-		if self.working == False:
+		if self.working is False:
 			self.session.nav.playService(self.oldService)
 			self.close()
 		else:

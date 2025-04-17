@@ -90,9 +90,7 @@ def getMountedDevices():
 		desc = loc[1]
 		return (mp, desc + " (" + mp + ")")
 
-	mountedDevs = [(resolveFilename(SCOPE_CONFIG), _("Flash")),
-				   (resolveFilename(SCOPE_MEDIA, "cf"), _("Compact Flash")),
-				   (resolveFilename(SCOPE_MEDIA, "usb"), _("USB Device"))]
+	mountedDevs = [(resolveFilename(SCOPE_CONFIG), _("Flash")), (resolveFilename(SCOPE_MEDIA, "cf"), _("Compact Flash")), (resolveFilename(SCOPE_MEDIA, "usb"), _("USB Device"))]
 	mountedDevs += [(p.mountpoint, (_(p.description) if p.description else "")) for p in harddiskmanager.getMountedPartitions(True)]
 	mediaDir = resolveFilename(SCOPE_MEDIA)
 	for p in os.listdir(mediaDir):
@@ -563,7 +561,7 @@ class NcidClientPhonebook:
 				self.session.open(MessageBox, _("No entry selected"), MessageBox.TYPE_INFO)
 
 		def add(self, parent=None, number="", name=""):
-			class AddScreen(Screen, ConfigListScreen):
+			class AddScreen(ConfigListScreen, Screen):
 				'''ConfiglistScreen with two ConfigTexts for Name and Number'''
 
 				def __init__(self, session, parent, number="", name=""):
@@ -679,7 +677,7 @@ class NcidClientPhonebook:
 phonebook = NcidClientPhonebook()
 
 
-class NcidClientSetup(Screen, ConfigListScreen):
+class NcidClientSetup(ConfigListScreen, Screen):
 
 	def __init__(self, session, args=None):  # @UnusedVariable # pylint: disable=W0613
 		self.width = scaleH(20 + 4 * (140 + 90) + 2 * (35 + 40) + 20, 4 * 140 + 2 * 35)

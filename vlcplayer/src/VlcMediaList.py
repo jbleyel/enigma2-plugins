@@ -44,7 +44,7 @@ class VlcMediaListScreen(Screen):
 			<widget size="540,320" scrollbarMode="showOnDemand" position="11,35" name="playlist" />
 		</screen>"""
 
-	defaultFilter = "(?i)\.(avi|mpeg|mpg|divx|xvid|mp4|mov|ts|vob|wmv|mkv|iso|m3u|pls|xspf|flv)$"
+	defaultFilter = r"(?i)\.(avi|mpeg|mpg|divx|xvid|mp4|mov|ts|vob|wmv|mkv|iso|m3u|pls|xspf|flv)$"
 
 	def __init__(self, session, server):
 		Screen.__init__(self, session)
@@ -65,21 +65,20 @@ class VlcMediaListScreen(Screen):
 		self["server_name"] = Label(server.getName())
 		self["current_dir"] = Label()
 
-		self["actions"] = ActionMap(["WizardActions", "MenuActions", "ShortcutActions", "MoviePlayerActions", "EPGSelectActions"],
-			{
-			 "back": self.close,
-			 "red": self.keyToggleFilter,
-			 "green": self.keyUpdate,
-			 "yellow": self.keyOpenServerlist,
-			 "blue": self.keyDvd,
-			 "up": self.up,
-			 "down": self.down,
-			 "left": self.left,
-			 "right": self.right,
-			 "ok": self.ok,
-			 "prevBouquet": self.switchToFileList,
-			 "nextBouquet": self.switchToPlayList,
-			 }, -1)
+		self["actions"] = ActionMap(["WizardActions", "MenuActions", "ShortcutActions", "MoviePlayerActions", "EPGSelectActions"], {
+			"back": self.close,
+			"red": self.keyToggleFilter,
+			"green": self.keyUpdate,
+			"yellow": self.keyOpenServerlist,
+			"blue": self.keyDvd,
+			"up": self.up,
+			"down": self.down,
+			"left": self.left,
+			"right": self.right,
+			"ok": self.ok,
+			"prevBouquet": self.switchToFileList,
+			"nextBouquet": self.switchToPlayList,
+		}, -1)
 		self.currentList = None
 		self.playlistIds = []
 

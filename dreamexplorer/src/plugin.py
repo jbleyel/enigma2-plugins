@@ -183,7 +183,7 @@ class DreamExplorerII(Screen):
 		self.commando = ["ls"]
 		self.selectedDir = "/tmp/"
 		self.booklines = []
-		self.MediaPattern = "^.*\.(ts|m2ts|mp3|wav|ogg|jpg|jpeg|jpe|png|bmp|mpg|mpeg|mkv|mp4|mov|divx|wmv|avi|mp2|m4a|flac|ifo|vob|iso|sh|flv|3gp|mod)"
+		self.MediaPattern = r"^.*\.(ts|m2ts|mp3|wav|ogg|jpg|jpeg|jpe|png|bmp|mpg|mpeg|mkv|mp4|mov|divx|wmv|avi|mp2|m4a|flac|ifo|vob|iso|sh|flv|3gp|mod)"
 		if pathExists(config.plugins.DreamExplorer.startDir.value):
 			StartMeOn = config.plugins.DreamExplorer.startDir.value
 		else:
@@ -194,7 +194,7 @@ class DreamExplorerII(Screen):
 		else:
 			self.MediaFilter = True
 			self["filelist"] = myFileList(StartMeOn, showDirectories=True, showFiles=True, matchingPattern=self.MediaPattern, useServiceRef=False)
-		self["TEMPfl"] = FileList("/", matchingPattern="(?i)^.*\.(jpeg|jpg|jpe|png|bmp)")
+		self["TEMPfl"] = FileList("/", matchingPattern=r"(?i)^.*\.(jpeg|jpg|jpe|png|bmp)")
 		self["actions"] = ActionMap(["WizardActions", "DirectionActions", "ColorActions", "MenuActions", "EPGSelectActions", "InfobarActions"],
 		{
 			"ok": self.ok,
@@ -224,7 +224,7 @@ class DreamExplorerII(Screen):
 			filename = self["filelist"].getCurrentDirectory() + self["filelist"].getFilename()
 			testFileName = self["filelist"].getFilename()
 			testFileName = testFileName.lower()
-			if filename != None:
+			if filename is not None:
 				if testFileName.endswith(".ts"):
 					fileRef = eServiceReference("1:0:0:0:0:0:0:0:0:0:" + filename)
 					self.session.open(MoviePlayer, fileRef)
@@ -404,7 +404,7 @@ class DreamExplorerII(Screen):
 		elif answer == "DELLINK":
 			temp_book = []
 			for bidx in range(len(self.booklines) - 1):
-				if not (self.selectedDir in self.booklines[bidx]):
+				if self.selectedDir not in self.booklines[bidx]:
 					temp_book.append(self.booklines[bidx])
 			self.booklines = []
 			self.booklines = temp_book
@@ -531,11 +531,11 @@ class DreamExplorerII(Screen):
 			return
 		if not (self["filelist"].canDescent()):
 			DELfilename = self["filelist"].getCurrentDirectory() + self["filelist"].getFilename()
-			dei = self.session.openWithCallback(self.callbackExecDelete, MessageBox, _("Do you realy want to DELETE:\n" + DELfilename), MessageBox.TYPE_YESNO)
+			dei = self.session.openWithCallback(self.callbackExecDelete, MessageBox, _("Do you really want to DELETE:\n" + DELfilename), MessageBox.TYPE_YESNO)
 			dei.setTitle(_("Dream-Explorer - DELETE file..."))
 		elif (self["filelist"].getSelectionIndex() != 0) and (self["filelist"].canDescent()):
 			DELDIR = self["filelist"].getSelection()[0]
-			dei = self.session.openWithCallback(self.callbackDelDir, MessageBox, _("Do you realy want to DELETE:\n" + DELDIR + '\n\nYou do it at your own risk!'), MessageBox.TYPE_YESNO)
+			dei = self.session.openWithCallback(self.callbackDelDir, MessageBox, _("Do you really want to DELETE:\n" + DELDIR + '\n\nYou do it at your own risk!'), MessageBox.TYPE_YESNO)
 			dei.setTitle(_("Dream-Explorer - DELETE DIRECTORY..."))
 
 	def callbackExecDelete(self, answer):
@@ -1105,7 +1105,7 @@ class CPmaniger(Screen):
 		self["key_red"] = StaticText(_("Move"))
 		self["key_yellow"] = StaticText(_("Copy"))
 		self["File"] = Label(_("WARNING! they doing now COPY or MOVE\n" + source + "\nto:"))
-		self["CPto"] = myFileList(config.plugins.DreamExplorer.CopyDest.value, showDirectories=True, showFiles=False, matchingPattern="^.*\.*", useServiceRef=False)
+		self["CPto"] = myFileList(config.plugins.DreamExplorer.CopyDest.value, showDirectories=True, showFiles=False, matchingPattern=r"^.*\.*", useServiceRef=False)
 		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
 		{
 			"ok": self.ok,

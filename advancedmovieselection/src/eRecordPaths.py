@@ -11,7 +11,7 @@ from Components.UsageConfig import preferredPath
 from Components.Sources.StaticText import StaticText
 
 
-class RecordPathsSettings(Screen, ConfigListScreen):
+class RecordPathsSettings(ConfigListScreen, Screen):
 	skin = """
 		<screen name="RecordPathsSettings" position="160,150" size="450,200" title="Recording paths">
 			<ePixmap pixmap="skin_default/buttons/red.png" position="10,0" size="140,40" alphatest="on" />
@@ -29,12 +29,11 @@ class RecordPathsSettings(Screen, ConfigListScreen):
 		ConfigListScreen.__init__(self, [])
 		self.initConfigList()
 
-		self["setupActions"] = ActionMap(["SetupActions", "ColorActions"],
-		{
-		    "green": self.save,
-		    "red": self.cancel,
-		    "cancel": self.cancel,
-		    "ok": self.ok,
+		self["setupActions"] = ActionMap(["SetupActions", "ColorActions"], {
+			"green": self.save,
+			"red": self.cancel,
+			"cancel": self.cancel,
+			"ok": self.ok,
 		}, -2)
 
 	def checkReadWriteDir(self, configele):

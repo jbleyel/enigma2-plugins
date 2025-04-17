@@ -21,7 +21,7 @@ from Screens.MessageBox import MessageBox
 main_url = "http://napisy.me/search.php?str="
 down_url = "http://napisy.me/download/sr/"
 
-subtitle_pattern = 'alt="(.+?)" border="0" />[\r\n\t ]+?</div>[\r\n\t ]+?<div class="title">[\r\n\t ]+?<a href="javascript:void\(0\);" onclick="javascript:pobierzNapis\(\'(.+?)\'\);" title="Wydanie: (.+?)" class="vtip">[ \r\n]*?                                (.+?)[ \r\n]*?</a>'
+subtitle_pattern = r'alt="(.+?)" border="0" />[\r\n\t ]+?</div>[\r\n\t ]+?<div class="title">[\r\n\t ]+?<a href="javascript:void\(0\);" onclick="javascript:pobierzNapis\(\'(.+?)\'\);" title="Wydanie: (.+?)" class="vtip">[ \r\n]*?                                (.+?)[ \r\n]*?</a>'
 
 
 def getallsubs(content, title, subtitles_list, file_original_path):
@@ -57,7 +57,7 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
     subtitles_list = []
     msg = ""
     if len(tvshow) > 0:
-      for rok in re.finditer(' \(\d\d\d\d\)', tvshow):
+      for rok in re.finditer(r' \(\d\d\d\d\)', tvshow):
           rok = rok.group()
           if len(rok) > 0:
               tvshow = tvshow.replace(rok, "")
